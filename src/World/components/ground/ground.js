@@ -8,10 +8,7 @@ function createGround() {
   loader.load(
     '/assets/models/ground.glb',
     (gltf) => {
-      const model = gltf.scene;
-      model.position.set(0, 0, 0);
-      model.scale.set(1, 1, 1);
-      group.add(model);
+      group.add(gltf.scene);
     },
     undefined,
     (error) => {
