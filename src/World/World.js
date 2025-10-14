@@ -6,9 +6,8 @@ import { createControls } from './systems/controls.js';
 import { createRenderer } from './systems/renderer.js';
 import { Resizer } from './systems/Resizer.js';
 import { Loop } from './systems/Loop.js';
-import { createGround } from './components/Ground/Ground.js';
-import { createCorn } from './components/gameObjects/corn.js';
-import { createTomato } from './components/gameObjects/tomato.js'; 
+import { createGround } from './components/ground/ground.js';
+import { GameManager } from './systems/GameManager.js';
 
 let camera;
 let renderer;
@@ -26,11 +25,10 @@ class World {
     const controls = createControls(camera, renderer.domElement);
     const { ambientLight, mainLight } = createLights();
     const ground = createGround();
-    const corn = createCorn();
-    const tomato = createTomato()
+    const game = new GameManager(scene, camera, renderer);
 
-    loop.updatables.push(controls);
-    scene.add(ambientLight, mainLight, ground, corn, tomato);
+    loop.updatables.push(controls, game);
+    scene.add(ambientLight, mainLight, ground);
 
     const resizer = new Resizer(container, camera, renderer);
 

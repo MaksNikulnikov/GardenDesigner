@@ -10,28 +10,28 @@ export const GAME_CONFIG = {
        * The length of this array determines the number of growth stages
        * and must match the number of stages available in the 3D model.
        */
-      growthTime: [3, 3, 3],
+      growthTime: [3, 3, 0],
       reward: 5,
       cost: 2,
     },
     tomato: {
       category: "plants",
       displayName: "Tomato",
-      growthTime: [4, 4, 4],
+      growthTime: [4, 4, 0],
       reward: 8,
       cost: 3,
     },
     strawberry: {
       category: "plants",
       displayName: "Strawberry",
-      growthTime: [5, 5, 5],
+      growthTime: [5, 5, 0],
       reward: 10,
       cost: 4,
     },
     grape: {
       category: "plants",
       displayName: "Grape",
-      growthTime: [6, 6, 6],
+      growthTime: [6, 6, 0],
       reward: 12,
       cost: 5,
     },
