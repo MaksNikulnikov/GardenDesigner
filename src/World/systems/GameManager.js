@@ -40,7 +40,7 @@ export class GameManager {
     this.state.selectedItem = item;
     console.log(`Selected item: ${item}`);
   }
-  
+
   _setupSceneClick() {
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
@@ -62,7 +62,6 @@ export class GameManager {
 
   _handleClickOnGround(point) {
     const slot = this.field.getSlotFromWorldPosition(point);
-    console.log("slot", slot);
     if (!slot) return;
 
     if (slot.content) {
@@ -78,7 +77,6 @@ export class GameManager {
     const type = this.state.selectedItem;
     const factory = FACTORIES[type];
     const config = GAME_CONFIG.ITEMS[type];
-
     if (!factory || !config) return;
     if (config.category !== slot.type) return;
 
@@ -109,7 +107,6 @@ export class GameManager {
     });
   }
 
- 
   _harvest(slot, config) {
     this.state.coins += config.reward;
     this.ui.updateCoins(this.state.coins);
@@ -135,7 +132,7 @@ export class GameManager {
       if (item.timer >= currentGrowthTime) {
         item.stage++;
         item.timer = 0;
-        item.nextGrowthIndex++
+        item.nextGrowthIndex++;
 
         const maxStage = config.growthTime.length;
         if (item.stage > maxStage) item.stage = maxStage;
