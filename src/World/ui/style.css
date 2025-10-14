@@ -1,0 +1,33 @@
+#game-ui {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-family: "Inter", sans-serif;
+  color: #fff;
+  user-select: none;
+}
+
+.btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-right: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.sub-buttons {
+  margin-top: 8px;
+}
+
+.coins {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
