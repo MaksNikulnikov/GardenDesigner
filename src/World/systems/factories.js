@@ -1,18 +1,35 @@
-import { createChicken } from "../components/gameObjects/chicken";
-import { createCorn } from "../components/gameObjects/corn";
-import { createCow } from "../components/gameObjects/cow";
-import { createGrape } from "../components/gameObjects/grape";
-import { createSheep } from "../components/gameObjects/sheep";
-import { createStrawberry } from "../components/gameObjects/strawberry";
-import { createTomato } from "../components/gameObjects/tomato";
-
+import * as THREE from "three";
+import { createObject } from "./ObjectFactory";
 
 export const FACTORIES = {
-  corn: createCorn,
-  tomato: createTomato,
-  strawberry: createStrawberry,
-  grape: createGrape,
-  cow: createCow,
-  sheep: createSheep,
-  chicken: createChicken,
+  // 🌾 Plants (multi-stage)
+  corn: () => createObject({ name: "corn", stages: 3 }),
+  tomato: () => createObject({ name: "tomato", stages: 3 }),
+  strawberry: () => createObject({ name: "strawberry", stages: 3 }),
+  grape: () => createObject({ name: "grape", stages: 3 }),
+
+  // 🐄 Animals (single model)
+  cow: () => createObject({ name: "cow" }),
+  sheep: () => createObject({ name: "sheep" }),
+  chicken: () => createObject({ name: "chicken" }),
+
+  // 🪴 Structures
+  plot: () =>
+    createObject({
+      name: "plot",
+
+    }),
+
+  pen: () =>
+    createObject({
+      name: "pen",
+
+    }),
+
+  // 🪧 Placeholder (used for empty field slots before building)
+  placeholder: () =>
+    createObject({
+      name: "placeholder",
+
+    }),
 };
