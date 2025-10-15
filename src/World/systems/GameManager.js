@@ -23,7 +23,9 @@ export class GameManager {
     this.pointer = new THREE.Vector2();
 
     this.field = new FieldManager(scene);
-    this.structures = new StructureManager(scene);
+    this.structures = new StructureManager(scene, (effect) =>
+      this.addUpdatable(effect)
+    );
 
     this.ui = new GameUI({
       onCategorySelect: (category) => this._onCategorySelect(category),
@@ -32,6 +34,17 @@ export class GameManager {
 
     this._setupSceneClick();
     this.ui.updateCoins(this.state.coins);
+    this.updatables = [];
+  }
+
+  addUpdatable(obj) {
+    if (obj && typeof obj.tick === "function") {
+      this.updatables.push(obj);
+    }
+  }
+
+  removeUpdatable(obj) {
+    this.updatables = this.updatables.filter((o) => o !== obj);
   }
 
   _onCategorySelect(category) {
@@ -113,7 +126,6 @@ export class GameManager {
   }
 
   _handleCellClick(cell) {
-
     if (!cell.content && this.state.selectedItem) {
       this._plant(cell);
       return;
@@ -169,7 +181,9 @@ export class GameManager {
 
     this.state.plantedItems = this.state.plantedItems.filter((p) => p !== item);
 
-    console.log(`💰 Harvested ${config.displayName}, earned ${config.reward} coins`);
+    console.log(
+      `💰 Harvested ${config.displayName}, earned ${config.reward} coins`
+    );
   }
 
   tick(delta) {
@@ -199,5 +213,9 @@ export class GameManager {
         }
       }
     });
+
+    for (const obj of this.updatables) {
+      obj.tick?.(delta);
+    }
   }
 }

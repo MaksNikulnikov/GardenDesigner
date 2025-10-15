@@ -62,4 +62,11 @@ export const GAME_CONFIG = {
       cost: 4,
     },
   },
+  STRUCTURES: {
+  plot: {
+    buildTime: 3,
+  },
+  pen: {
+    buildTime: 4,
+  },}
 };
