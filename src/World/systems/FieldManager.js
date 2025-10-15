@@ -1,61 +1,71 @@
-import { createPlaceholder } from "../components/gameObjects/placeholder.js";
-import { GridService } from "./GridService.js";
+import { FIELDS_CONFIG } from "../config/fieldsConfig.js";
+import { FACTORIES } from "./factories.js";
 
 export class FieldManager {
   constructor(scene) {
     this.scene = scene;
-    this.grid = new GridService({ cellSize: 2, rows: 2, cols: 4 });
+    this.placeholders = [];
 
-    this.slots = [];
-    this._createField();
+    this._createPlaceholders();
   }
 
-  _createField() {
-    for (let r = 0; r < this.grid.rows; r++) {
-      for (let c = 0; c < this.grid.cols; c++) {
-        const position = this.grid.getWorldPosition(r, c);
-        const placeholder = createPlaceholder();
-        placeholder.position.copy(position);
-        this.scene.add(placeholder);
+  _createPlaceholders() {
+    FIELDS_CONFIG.forEach((cfg) => {
+      const placeholder = FACTORIES.placeholder();
 
-        this.slots.push({
-          row: r,
-          col: c,
-          type: this.grid.getCellType(r),
-          position,
-          placeholder,
-          content: null,
-        });
+      placeholder.position.copy(cfg.position);
+      if (cfg.rotationY) placeholder.rotation.y = cfg.rotationY;
+
+      this.scene.add(placeholder);
+
+      this.placeholders.push({
+        id: cfg.id,
+        position: cfg.position.clone(),
+        rotationY: cfg.rotationY ?? 0,
+        placeholder,
+        structure: null,
+        type: cfg.type,
+      });
+    });
+  }
+
+  getPlaceholderByPosition(point) {
+    let closest = null;
+    let minDist = Infinity;
+    for (const ph of this.placeholders) {
+      const dist = ph.position.distanceTo(point);
+      if (dist < 3 && dist < minDist) {
+        closest = ph;
+        minDist = dist;
       }
     }
+    return closest;
   }
 
-  getSlot(row, col) {
-    return this.slots.find((s) => s.row === row && s.col === col);
+  addStructure(placeholder, structure) {
+    if (!placeholder || placeholder.structure) return;
+
+    this.scene.remove(placeholder.placeholder);
+
+    structure.group.position.copy(placeholder.position);
+    structure.group.rotation.y = placeholder.rotationY || 0;
+
+    this.scene.add(structure.group);
+
+    placeholder.structure = structure;
   }
 
-  getSlotFromWorldPosition(worldPos) {
-    const cell = this.grid.getCellFromWorldPosition(worldPos);
-    if (!cell) return null;
-    return this.getSlot(cell.row, cell.col);
-  }
+  removeStructure(placeholder) {
+    if (!placeholder.structure) return;
 
-  plant(slot, obj) {
-    if (!slot || slot.content) return;
-    this.scene.remove(slot.placeholder);
-    obj.position.copy(slot.position);
-    this.scene.add(obj);
-    slot.content = obj;
-  }
+    this.scene.remove(placeholder.structure.group);
 
-  harvest(slot) {
-    if (!slot || !slot.content) return;
-    this.scene.remove(slot.content);
-    slot.content = null;
+    const placeholderModel = FACTORIES.placeholder();
+    placeholderModel.position.copy(placeholder.position);
+    placeholderModel.rotation.y = placeholder.rotationY || 0;
+    this.scene.add(placeholderModel);
 
-    const placeholder = createPlaceholder();
-    placeholder.position.copy(slot.position);
-    this.scene.add(placeholder);
-    slot.placeholder = placeholder;
+    placeholder.placeholder = placeholderModel;
+    placeholder.structure = null;
   }
 }
