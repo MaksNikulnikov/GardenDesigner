@@ -1,6 +1,10 @@
 export const GAME_CONFIG = {
   INITIAL_COINS: 50,
-
+  OFFSET_Y:{
+    PLACEHOLDER: 0.25,
+    PEN: 0.5,
+    PLOT: 0.5,
+  },
   ITEMS: {
     corn: {
       category: "plants",
