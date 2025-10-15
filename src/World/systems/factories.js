@@ -14,22 +14,9 @@ export const FACTORIES = {
   chicken: () => createObject({ name: "chicken" }),
 
   // 🪴 Structures
-  plot: () =>
-    createObject({
-      name: "plot",
-
-    }),
-
-  pen: () =>
-    createObject({
-      name: "pen",
-
-    }),
+  plot: () => createObject({ name: "plot" }),
+  pen: () => createObject({ name: "pen" }),
 
   // 🪧 Placeholder (used for empty field slots before building)
-  placeholder: () =>
-    createObject({
-      name: "placeholder",
-
-    }),
+  placeholder: () => createObject({ name: "placeholder" }),
 };

@@ -35,14 +35,18 @@ export class StructureManager {
   }
 
   createAnimalPen(origin) {
-    const group = new THREE.Group();
-
-    const pen = FACTORIES.pen();
-    pen.position.copy(origin);
-    group.add(pen);
-
+    const group = FACTORIES.pen();
+    group.position.copy(origin);
     this.scene.add(group);
 
-    return { type: "pen", group, cell: { position: origin, type: "animals", content: null } };
+    return {
+      type: "pen",
+      group,
+      cell: {
+        position: group.position.clone(),
+        type: "animals",
+        content: null,
+      },
+    };
   }
 }
