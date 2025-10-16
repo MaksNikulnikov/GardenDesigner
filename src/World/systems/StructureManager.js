@@ -9,8 +9,38 @@ export class StructureManager {
     this.onEffectCreated = onEffectCreated; // callback from GameManager
   }
 
-  createGardenPlot(placeholder) {
-    const { position: origin, rotationY } = placeholder;
+  createPlaceholder(cfg) {
+    const model = FACTORIES.placeholder();
+    model.position.copy(cfg.position);
+    if (cfg.rotationY) model.rotation.y = cfg.rotationY;
+
+    this.scene.add(model);
+
+    return {
+      id: cfg.id,
+      type: cfg.type,
+      position: cfg.position.clone(),
+      rotationY: cfg.rotationY ?? 0,
+      placeholder: model,
+      structure: null,
+    };
+  }
+
+  removePlaceholder(field) {
+    if (!field || !field.placeholder) return;
+
+    this.scene.remove(field.placeholder);
+
+    return {
+      id: field.id,
+      position: field.position.clone(),
+      rotationY: field.rotationY,
+      type: field.type,
+    };
+  }
+
+  createGardenPlot(field) {
+    const { position: origin, rotationY } = field;
     const buildTime = GAME_CONFIG.STRUCTURES.plot.buildTime;
     const offsetY =
       GAME_CONFIG.OFFSET_Y.PLOT - GAME_CONFIG.OFFSET_Y.PLACEHOLDER;
@@ -47,8 +77,8 @@ export class StructureManager {
     return { type: "garden", group, cells: [], origin };
   }
 
-  createAnimalPen(placeholder) {
-    const { position: origin, rotationY } = placeholder;
+  createAnimalPen(field) {
+    const { position: origin, rotationY } = field;
     const buildTime = GAME_CONFIG.STRUCTURES.pen.buildTime;
     const offsetY = GAME_CONFIG.OFFSET_Y.PEN - GAME_CONFIG.OFFSET_Y.PLACEHOLDER;
 
@@ -67,7 +97,6 @@ export class StructureManager {
     this.scene.add(group);
 
     gsap.delayedCall(buildTime, () => {
-
       group.visible = true;
       gsap.fromTo(
         group.scale,

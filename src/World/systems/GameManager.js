@@ -27,6 +27,11 @@ export class GameManager {
       this.addUpdatable(effect)
     );
 
+    for (const field of this.field.fields) {
+      const ph = this.structures.createPlaceholder(field);
+      field.placeholder = ph.placeholder;
+    }
+
     this.ui = new GameUI({
       onCategorySelect: (category) => this._onCategorySelect(category),
       onItemSelect: (item) => this._onItemSelect(item),
@@ -80,16 +85,16 @@ export class GameManager {
       this._handleCellClick(slot);
       return;
     }
-    const placeholder = this.field.getPlaceholderByPosition(point);
-    if (!placeholder) return;
+    const field = this.field.getFieldByPosition(point);
+    if (!field) return;
 
-    if (!placeholder.structure) {
-      this._buildStructure(placeholder);
+    if (!field.structure) {
+      this._buildStructure(field);
     }
   }
 
   _getClickedCell(point) {
-    for (const ph of this.field.placeholders) {
+    for (const ph of this.field.fields) {
       const structure = ph.structure;
       if (!structure) continue;
 
@@ -108,20 +113,22 @@ export class GameManager {
     return null;
   }
 
-  _buildStructure(placeholder) {
+  _buildStructure(field) {
     if (!this.state.selectedCategory) {
       console.log("Select category first (plants or animals)");
       return;
     }
 
     if (this.state.selectedCategory === "plants") {
-      const garden = this.structures.createGardenPlot(placeholder);
-      this.field.removePlaceholder(placeholder);
-      console.log(`🌱 Garden plot placed on ${placeholder.id}`);
+      field.structure = this.structures.createGardenPlot(field);
+      this.structures.removePlaceholder(field)
+      field.placeholder = null
+      console.log(`🌱 Garden plot placed on ${field.id}`);
     } else if (this.state.selectedCategory === "animals") {
-      const pen = this.structures.createAnimalPen(placeholder);
-      this.field.removePlaceholder(placeholder);
-      console.log(`🐄 Animal pen placed on ${placeholder.id}`);
+      field.structure = this.structures.createAnimalPen(field);
+      this.structures.removePlaceholder(field)
+      field.placeholder = null
+      console.log(`🐄 Animal pen placed on ${field.id}`);
     }
   }
 
