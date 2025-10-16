@@ -94,20 +94,13 @@ export class GameManager {
   }
 
   _getClickedCell(point) {
-    for (const ph of this.field.fields) {
-      const structure = ph.structure;
+    for (const field of this.field.fields) {
+      const structure = field.structure;
       if (!structure) continue;
 
-      if (structure.type === "garden") {
-        for (const cell of structure.cells) {
-          const dist = cell.position.distanceTo(point);
-          if (dist < 1) return cell;
-        }
-      }
-
-      if (structure.type === "pen") {
-        const dist = structure.cell.position.distanceTo(point);
-        if (dist < 2) return structure.cell;
+      for (const cell of structure.cells) {
+        const dist = cell.position.distanceTo(point);
+        if (dist < 1) return cell;
       }
     }
     return null;
