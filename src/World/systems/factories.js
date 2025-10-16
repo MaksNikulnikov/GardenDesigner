@@ -1,5 +1,5 @@
-import * as THREE from "three";
 import { createObject } from "./ObjectFactory";
+import { createObjectWithAnimation } from "./createObjectWithAnimation";
 
 export const FACTORIES = {
   // 🌾 Plants (multi-stage)
@@ -9,9 +9,9 @@ export const FACTORIES = {
   grape: () => createObject({ name: "grape", stages: 3 }),
 
   // 🐄 Animals (single model)
-  cow: () => createObject({ name: "cow" }),
-  sheep: () => createObject({ name: "sheep" }),
-  chicken: () => createObject({ name: "chicken" }),
+  cow: (opts) => createObjectWithAnimation({ name: "cow", ...(opts ?? {}) }),
+  sheep: (opts) => createObjectWithAnimation({ name: "sheep", ...(opts ?? {}) }),
+  chicken: (opts) => createObjectWithAnimation({ name: "chicken", ...(opts ?? {}) }),
 
   // 🪴 Structures
   plot: () => createObject({ name: "plot" }),

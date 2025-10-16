@@ -121,13 +121,13 @@ export class GameManager {
 
     if (this.state.selectedCategory === "plants") {
       field.structure = this.structures.createGardenPlot(field);
-      this.structures.removePlaceholder(field)
-      field.placeholder = null
+      this.structures.removePlaceholder(field);
+      field.placeholder = null;
       console.log(`🌱 Garden plot placed on ${field.id}`);
     } else if (this.state.selectedCategory === "animals") {
       field.structure = this.structures.createAnimalPen(field);
-      this.structures.removePlaceholder(field)
-      field.placeholder = null
+      this.structures.removePlaceholder(field);
+      field.placeholder = null;
       console.log(`🐄 Animal pen placed on ${field.id}`);
     }
   }
@@ -144,6 +144,18 @@ export class GameManager {
   }
 
   _plant(cell) {
+    const type = this.state.selectedItem;
+    const config = GAME_CONFIG.ITEMS[type];
+    if (!config) return;
+
+    if (config.category === "plants") {
+      this._plantPlant(cell);
+    } else if (config.category === "animals") {
+      this._spawnAnimal(cell, type);
+    }
+  }
+
+  _plantPlant(cell) {
     const type = this.state.selectedItem;
     const factory = FACTORIES[type];
     const config = GAME_CONFIG.ITEMS[type];
@@ -175,6 +187,18 @@ export class GameManager {
     });
 
     console.log(`🌱 Planted ${type} at`, cell.position);
+  }
+
+  _spawnAnimal(cell, type) {
+    const obj = FACTORIES[type]({
+      onLoaded: (group) => {
+        this.addUpdatable(group);
+      },
+    });
+    obj.position.copy(cell.position);
+    this.scene.add(obj);
+    cell.content = obj;
+    console.log(`🐔 Spawned animal ${type} at`, cell.position);
   }
 
   _harvest(item) {
