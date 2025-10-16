@@ -42,17 +42,9 @@ export class FieldManager {
     return closest;
   }
 
-  addStructure(placeholder, structure) {
+  removePlaceholder(placeholder) {
     if (!placeholder || placeholder.structure) return;
-
     this.scene.remove(placeholder.placeholder);
-
-    structure.group.position.copy(placeholder.position);
-    structure.group.rotation.y = placeholder.rotationY || 0;
-
-    this.scene.add(structure.group);
-
-    placeholder.structure = structure;
   }
 
   removeStructure(placeholder) {

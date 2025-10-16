@@ -115,12 +115,12 @@ export class GameManager {
     }
 
     if (this.state.selectedCategory === "plants") {
-      const garden = this.structures.createGardenPlot(placeholder.position);
-      this.field.addStructure(placeholder, garden);
+      const garden = this.structures.createGardenPlot(placeholder);
+      this.field.removePlaceholder(placeholder);
       console.log(`🌱 Garden plot placed on ${placeholder.id}`);
     } else if (this.state.selectedCategory === "animals") {
-      const pen = this.structures.createAnimalPen(placeholder.position);
-      this.field.addStructure(placeholder, pen);
+      const pen = this.structures.createAnimalPen(placeholder);
+      this.field.removePlaceholder(placeholder);
       console.log(`🐄 Animal pen placed on ${placeholder.id}`);
     }
   }

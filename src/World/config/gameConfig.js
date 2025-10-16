@@ -64,9 +64,9 @@ export const GAME_CONFIG = {
   },
   STRUCTURES: {
   plot: {
-    buildTime: 3,
+    buildTime: 1.5,
   },
   pen: {
-    buildTime: 4,
+    buildTime: 2,
   },}
 };

@@ -1,4 +1,3 @@
-import * as THREE from "three";
 import { FACTORIES } from "./factories.js";
 import { gsap } from "gsap";
 import { GAME_CONFIG } from "../config/gameConfig.js";
@@ -10,20 +9,26 @@ export class StructureManager {
     this.onEffectCreated = onEffectCreated; // callback from GameManager
   }
 
-  createGardenPlot(origin) {
-    const buildTime = GAME_CONFIG.STRUCTURES.plot.buildTime ?? 5;
+  createGardenPlot(placeholder) {
+    const { position: origin, rotationY } = placeholder;
+    const buildTime = GAME_CONFIG.STRUCTURES.plot.buildTime;
+    const offsetY =
+      GAME_CONFIG.OFFSET_Y.PLOT - GAME_CONFIG.OFFSET_Y.PLACEHOLDER;
 
-    const smoke = createSmokeEffect(this.scene, origin, { duration: buildTime });
+    const smoke = createSmokeEffect(this.scene, origin, {
+      duration: buildTime,
+    });
     this.onEffectCreated?.(smoke);
 
     const group = FACTORIES.plot();
     group.position.copy(origin);
+    group.position.y += offsetY;
+    group.rotation.y = rotationY;
     group.scale.set(0.001, 0.001, 0.001);
     group.visible = false;
     this.scene.add(group);
 
     gsap.delayedCall(buildTime, () => {
-
       group.visible = true;
       gsap.fromTo(
         group.scale,
@@ -42,14 +47,21 @@ export class StructureManager {
     return { type: "garden", group, cells: [], origin };
   }
 
-  createAnimalPen(origin) {
-    const buildTime = GAME_CONFIG.STRUCTURES.pen.buildTime ?? 10;
+  createAnimalPen(placeholder) {
+    const { position: origin, rotationY } = placeholder;
+    const buildTime = GAME_CONFIG.STRUCTURES.pen.buildTime;
+    const offsetY = GAME_CONFIG.OFFSET_Y.PEN - GAME_CONFIG.OFFSET_Y.PLACEHOLDER;
 
-    const smoke = createSmokeEffect(this.scene, origin, { duration: buildTime });
+    const smoke = createSmokeEffect(this.scene, origin, {
+      duration: buildTime,
+    });
     this.onEffectCreated?.(smoke);
 
     const group = FACTORIES.pen();
     group.position.copy(origin);
+    group.position.y += offsetY;
+    group.rotation.y = rotationY;
+
     group.scale.set(0.001, 0.001, 0.001);
     group.visible = false;
     this.scene.add(group);
