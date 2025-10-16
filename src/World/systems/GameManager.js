@@ -1,9 +1,9 @@
 import * as THREE from "three";
-import { FACTORIES } from "./factories.js";
 import { GameUI } from "../ui/ui.js";
 import { GAME_CONFIG } from "../config/gameConfig.js";
 import { FieldManager } from "./FieldManager.js";
 import { StructureManager } from "./StructureManager.js";
+import { EntityManager } from "./EntityManager.js";
 
 export class GameManager {
   constructor(scene, camera, renderer) {
@@ -15,31 +15,32 @@ export class GameManager {
       coins: GAME_CONFIG.INITIAL_COINS,
       selectedCategory: null, // "plants" | "animals"
       selectedItem: null, // corn, tomato, cow...
-      plantedItems: [],
     };
 
     this.clock = new THREE.Clock();
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
 
+    // --- Managers ---
     this.field = new FieldManager(scene);
-    this.structures = new StructureManager(scene, (effect) =>
-      this.addUpdatable(effect)
-    );
+    this.structures = new StructureManager(scene, (effect) => this.addUpdatable(effect));
+    this.entities = new EntityManager(scene, (obj) => this.addUpdatable(obj));
 
+    // --- Create placeholders ---
     for (const field of this.field.fields) {
       const ph = this.structures.createPlaceholder(field);
       field.placeholder = ph.placeholder;
     }
 
+    // --- UI ---
     this.ui = new GameUI({
       onCategorySelect: (category) => this._onCategorySelect(category),
       onItemSelect: (item) => this._onItemSelect(item),
     });
-
-    this._setupSceneClick();
     this.ui.updateCoins(this.state.coins);
+
     this.updatables = [];
+    this._setupSceneClick();
   }
 
   addUpdatable(obj) {
@@ -80,11 +81,12 @@ export class GameManager {
   }
 
   _handleClick(point) {
-    const slot = this._getClickedCell(point);
-    if (slot) {
-      this._handleCellClick(slot);
+    const cell = this._getClickedCell(point);
+    if (cell) {
+      this._handleCellClick(cell);
       return;
     }
+
     const field = this.field.getFieldByPosition(point);
     if (!field) return;
 
@@ -107,139 +109,34 @@ export class GameManager {
   }
 
   _buildStructure(field) {
-    if (!this.state.selectedCategory) {
-      console.log("Select category first (plants or animals)");
-      return;
+    const cat = this.state.selectedCategory;
+    if (!cat) return console.log("Select category first");
+
+    if (cat === "plants") {
+      field.structure = this.structures.createGardenPlot(field);
+    } else if (cat === "animals") {
+      field.structure = this.structures.createAnimalPen(field);
     }
 
-    if (this.state.selectedCategory === "plants") {
-      field.structure = this.structures.createGardenPlot(field);
-      this.structures.removePlaceholder(field);
-      field.placeholder = null;
-      console.log(`🌱 Garden plot placed on ${field.id}`);
-    } else if (this.state.selectedCategory === "animals") {
-      field.structure = this.structures.createAnimalPen(field);
-      this.structures.removePlaceholder(field);
-      field.placeholder = null;
-      console.log(`🐄 Animal pen placed on ${field.id}`);
-    }
+    this.structures.removePlaceholder(field);
+    field.placeholder = null;
   }
 
   _handleCellClick(cell) {
+    const item = this.entities.getEntityByCell(cell);
+
     if (!cell.content && this.state.selectedItem) {
-      this._plant(cell);
-      return;
-    }
-    const planted = this.state.plantedItems.find((p) => p.cell === cell);
-    if (planted && planted.readyToHarvest && !planted.harvested) {
-      this._harvest(planted);
-    }
-  }
-
-  _plant(cell) {
-    const type = this.state.selectedItem;
-    const config = GAME_CONFIG.ITEMS[type];
-    if (!config) return;
-
-    if (config.category === "plants") {
-      this._plantPlant(cell);
-    } else if (config.category === "animals") {
-      this._spawnAnimal(cell, type);
-    }
-  }
-
-  _plantPlant(cell) {
-    const type = this.state.selectedItem;
-    const factory = FACTORIES[type];
-    const config = GAME_CONFIG.ITEMS[type];
-    if (!factory || !config) return;
-
-    if (this.state.coins < config.cost) {
-      console.warn("Not enough coins!");
+      this.entities.plantOrSpawn(cell, this.state.selectedItem, this.state, this.ui);
       return;
     }
 
-    this.state.coins -= config.cost;
-    this.ui.updateCoins(this.state.coins);
-
-    const obj = factory();
-    obj.position.copy(cell.position);
-    this.scene.add(obj);
-
-    cell.content = obj;
-
-    this.state.plantedItems.push({
-      cell,
-      type,
-      obj,
-      stage: 1,
-      timer: 0,
-      nextGrowthIndex: 0,
-      readyToHarvest: false,
-      harvested: false,
-    });
-
-    console.log(`🌱 Planted ${type} at`, cell.position);
-  }
-
-  _spawnAnimal(cell, type) {
-    const obj = FACTORIES[type]({
-      onLoaded: (group) => {
-        this.addUpdatable(group);
-      },
-    });
-    obj.position.copy(cell.position);
-    this.scene.add(obj);
-    cell.content = obj;
-    console.log(`🐔 Spawned animal ${type} at`, cell.position);
-  }
-
-  _harvest(item) {
-    const config = GAME_CONFIG.ITEMS[item.type];
-
-    this.state.coins += config.reward;
-    this.ui.updateCoins(this.state.coins);
-
-    this.scene.remove(item.obj);
-    item.cell.content = null;
-
-    this.state.plantedItems = this.state.plantedItems.filter((p) => p !== item);
-
-    console.log(
-      `💰 Harvested ${config.displayName}, earned ${config.reward} coins`
-    );
+    if (item && item.readyToHarvest) {
+      this.entities.harvest(item, this.state, this.ui);
+    }
   }
 
   tick(delta) {
-    this.state.plantedItems.forEach((item) => {
-      if (item.harvested || item.readyToHarvest) return;
-
-      const config = GAME_CONFIG.ITEMS[item.type];
-      item.timer += delta;
-
-      const currentGrowthTime =
-        config.growthTime[item.nextGrowthIndex] ?? config.growthTime.at(-1);
-
-      if (item.timer >= currentGrowthTime) {
-        item.stage++;
-        item.timer = 0;
-        item.nextGrowthIndex++;
-
-        const maxStage = config.growthTime.length;
-        if (item.stage > maxStage) item.stage = maxStage;
-
-        if (item.obj.setStage) item.obj.setStage(item.stage);
-        console.log(`🌿 ${item.type} grew to stage ${item.stage}`);
-
-        if (item.nextGrowthIndex >= config.growthTime.length) {
-          item.readyToHarvest = true;
-          console.log(`✅ ${item.type} is ready to harvest`);
-        }
-      }
-    });
-
-    for (const obj of this.updatables) {
-      obj.tick?.(delta);
-    }
+    this.entities.tick(delta);
+    for (const obj of this.updatables) obj.tick?.(delta);
   }
 }
