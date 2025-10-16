@@ -4,6 +4,7 @@ import { GAME_CONFIG } from "../config/gameConfig.js";
 import { FieldManager } from "./FieldManager.js";
 import { StructureManager } from "./StructureManager.js";
 import { EntityManager } from "./EntityManager.js";
+import { TutorialManager } from "./TutorialManager.js";
 
 export class GameManager {
   constructor(scene, camera, renderer) {
@@ -14,16 +15,20 @@ export class GameManager {
     this.state = {
       coins: GAME_CONFIG.INITIAL_COINS,
       selectedCategory: null, // "plants" | "animals"
-      selectedItem: null, // corn, tomato, cow...
+      selectedItem: null, // corn, tomato, chicken...
+      buildMode: null, // "garden" | "pen"
     };
 
     this.clock = new THREE.Clock();
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
+    this.updatables = [];
 
     // --- Managers ---
     this.field = new FieldManager(scene);
-    this.structures = new StructureManager(scene, (effect) => this.addUpdatable(effect));
+    this.structures = new StructureManager(scene, (fx) =>
+      this.addUpdatable(fx)
+    );
     this.entities = new EntityManager(scene, (obj) => this.addUpdatable(obj));
 
     // --- Create placeholders ---
@@ -34,35 +39,59 @@ export class GameManager {
 
     // --- UI ---
     this.ui = new GameUI({
+      onBuildModeSelect: (type) => this._startBuildMode(type),
       onCategorySelect: (category) => this._onCategorySelect(category),
       onItemSelect: (item) => this._onItemSelect(item),
     });
+
     this.ui.updateCoins(this.state.coins);
 
-    this.updatables = [];
+    // --- Scene click handling ---
     this._setupSceneClick();
+
+    // --- Tutorial ---
+    this.tutorial = new TutorialManager(this.ui, this);
+    this.tutorial.start();
   }
 
+  // ========================
+  // 🔁 Generic update hooks
+  // ========================
   addUpdatable(obj) {
-    if (obj && typeof obj.tick === "function") {
-      this.updatables.push(obj);
-    }
+    if (obj && typeof obj.tick === "function") this.updatables.push(obj);
   }
 
   removeUpdatable(obj) {
     this.updatables = this.updatables.filter((o) => o !== obj);
   }
 
+  // ========================
+  // 🧭 Category selection
+  // ========================
   _onCategorySelect(category) {
     this.state.selectedCategory = category;
     this.state.selectedItem = null;
+    console.log(`[UI] Selected category: ${category}`);
   }
 
   _onItemSelect(item) {
     this.state.selectedItem = item;
-    console.log(`Selected item: ${item}`);
+    console.log(`[UI] Selected item: ${item}`);
   }
 
+  // ========================
+  // 🏗️ Build Mode
+  // ========================
+  _startBuildMode(type) {
+    this.state.buildMode = type;
+    this.ui.showHint("Tap an empty area to place it");
+
+    console.log(`🏗️ Build mode started: ${type}`);
+  }
+
+  // ========================
+  // 🖱️ Click handling
+  // ========================
   _setupSceneClick() {
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
@@ -81,17 +110,19 @@ export class GameManager {
   }
 
   _handleClick(point) {
+    // 1️⃣ Check if a cell was clicked
     const cell = this._getClickedCell(point);
     if (cell) {
       this._handleCellClick(cell);
       return;
     }
 
-    const field = this.field.getFieldByPosition(point);
-    if (!field) return;
-
-    if (!field.structure) {
+    // 2️⃣ Check if building mode is active
+    if (this.state.buildMode) {
+      const field = this.field.getFieldByPosition(point);
+      if (!field || field.structure) return;
       this._buildStructure(field);
+      return;
     }
   }
 
@@ -108,35 +139,89 @@ export class GameManager {
     return null;
   }
 
+  // ========================
+  // 🏡 Build logic
+  // ========================
   _buildStructure(field) {
-    const cat = this.state.selectedCategory;
-    if (!cat) return console.log("Select category first");
+    const mode = this.state.buildMode;
+    if (!mode) return;
 
-    if (cat === "plants") {
+    console.log(`🏗️ Building structure: ${mode} on field ${field.id}`);
+
+    if (mode === "garden") {
       field.structure = this.structures.createGardenPlot(field);
-    } else if (cat === "animals") {
+      this.ui.unlockCategory("plants");
+    } else if (mode === "pen") {
       field.structure = this.structures.createAnimalPen(field);
+      this.ui.unlockCategory("animals");
     }
 
     this.structures.removePlaceholder(field);
     field.placeholder = null;
+    this.ui.hideHint();
+
+    this.state.buildMode = null;
   }
 
+  // ========================
+  // 🌿 / 🐔 Gameplay actions
+  // ========================
   _handleCellClick(cell) {
     const item = this.entities.getEntityByCell(cell);
 
+    // Empty cell and selected item → plant/spawn
     if (!cell.content && this.state.selectedItem) {
-      this.entities.plantOrSpawn(cell, this.state.selectedItem, this.state, this.ui);
+      this.entities.plantOrSpawn(
+        cell,
+        this.state.selectedItem,
+        this.state,
+        this.ui
+      );
       return;
     }
 
+    // Harvest ready crops
     if (item && item.readyToHarvest) {
       this.entities.harvest(item, this.state, this.ui);
     }
   }
 
+  // ========================
+  // ⏱️ Game Loop
+  // ========================
   tick(delta) {
     this.entities.tick(delta);
     for (const obj of this.updatables) obj.tick?.(delta);
+  }
+
+  waitForBuild(callback) {
+    const originalBuild = this._buildStructure.bind(this);
+    this._buildStructure = (field) => {
+      originalBuild(field);
+      this._buildStructure = originalBuild;
+      callback?.();
+    };
+  }
+
+  waitForPlant(callback) {
+    const originalHandle = this._handleCellClick.bind(this);
+    this._handleCellClick = (cell) => {
+      originalHandle(cell);
+      if (cell.content) {
+        this._handleCellClick = originalHandle;
+        callback?.();
+      }
+    };
+  }
+
+  waitForAnimal(callback) {
+    const originalHandle = this._handleCellClick.bind(this);
+    this._handleCellClick = (cell) => {
+      originalHandle(cell);
+      if (cell.content && cell.type === "animals") {
+        this._handleCellClick = originalHandle;
+        callback?.();
+      }
+    };
   }
 }
