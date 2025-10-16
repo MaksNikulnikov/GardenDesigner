@@ -65,7 +65,7 @@ export const GAME_CONFIG = {
   STRUCTURES: {
   plot: {
     buildTime: 1.5,
-    cellLayout: { rows: 3, cols: 2, cellSizeX: 3, cellSizeZ: 3.2 },
+    cellLayout: { rows: 3, cols: 2, cellSizeX: 3, cellSizeZ: 3.4 },
   },
   pen: {
     buildTime: 2,

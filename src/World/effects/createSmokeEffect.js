@@ -11,7 +11,7 @@ import { gsap } from "gsap";
 
 // Default visual tuning
 const SMOKE_PARTICLE_COUNT = 40;   // number of particles per layer
-const SMOKE_SIZE = 14;             // sprite size in world units
+const SMOKE_SIZE = 8;              // sprite size in world units
 const SMOKE_SPREAD = 6;            // overall width of the cloud
 const SMOKE_Y_OFFSET = 1;          // how high above the ground
 const SMOKE_DURATION = 6;          // total lifespan in seconds
