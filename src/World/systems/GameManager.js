@@ -5,6 +5,7 @@ import { FieldManager } from "./FieldManager.js";
 import { StructureManager } from "./StructureManager.js";
 import { EntityManager } from "./EntityManager.js";
 import { TutorialManager } from "./TutorialManager.js";
+import { DayNightManager } from "./DayNightManager.js";
 
 export class GameManager {
   constructor(scene, camera, renderer) {
@@ -48,6 +49,13 @@ export class GameManager {
 
     // --- Scene click handling ---
     this._setupSceneClick();
+
+    this.dayNight = new DayNightManager(scene, this.ui);
+    this.ui.ready.then(() => {
+      this.ui.onDayNightToggle(() => {
+        this.dayNight.toggleDayNight();
+      });
+    });
 
     // --- Tutorial ---
     this.tutorial = new TutorialManager(this.ui, this);
@@ -191,6 +199,7 @@ export class GameManager {
   // ========================
   tick(delta) {
     this.entities.tick(delta);
+    this.dayNight.tick(delta);
     for (const obj of this.updatables) obj.tick?.(delta);
   }
 

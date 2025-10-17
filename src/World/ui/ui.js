@@ -4,18 +4,20 @@ export class GameUI {
     this.onCategorySelect = onCategorySelect;
     this.onItemSelect = onItemSelect;
 
-    fetch("/src/World/ui/index.html")
-      .then((res) => res.text())
-      .then((html) => {
-        document.body.insertAdjacentHTML("beforeend", html);
-        this._initElements();
-        this._createHintElements();
-      });
+    this.ready = this._loadUI();
 
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "/src/World/ui/style.css";
     document.head.appendChild(link);
+  }
+
+  async _loadUI() {
+    const res = await fetch("/src/World/ui/index.html");
+    const html = await res.text();
+    document.body.insertAdjacentHTML("beforeend", html);
+    this._initElements();
+    this._createHintElements();
   }
 
   _initElements() {
@@ -160,4 +162,26 @@ export class GameUI {
     };
     document.addEventListener("pointerdown", this._globalClickHandler);
   }
+
+  onDayNightToggle(callback) {
+    const btn = document.getElementById("toggle-day-night");
+    if (!btn) {
+      console.warn("⚠️ toggle-day-night not found yet");
+      return;
+    }
+    btn.addEventListener("click", () => callback?.());
+  }
+
+  updateClock(timeStr) {
+    const el = document.getElementById("clock");
+    if (el) el.textContent = timeStr;
+  }
+
+  updateDayNight(isDay) {
+    const icon = document.getElementById("day-night-icon");
+    if (!icon) return;
+    icon.src = isDay ? "/assets/images/sun.png" : "/assets/images/moon.png";
+    icon.alt = isDay ? "Day" : "Night";
+  }
+
 }

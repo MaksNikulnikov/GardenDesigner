@@ -1,5 +1,6 @@
 export const GAME_CONFIG = {
   INITIAL_COINS: 50,
+  DAY_DURATION: 240,
   OFFSET_Y:{
     PLACEHOLDER: 0.25,
     PEN: 0.5,
