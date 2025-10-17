@@ -14,8 +14,6 @@ export class DayNightManager {
     this.directional = new THREE.DirectionalLight(0xffffff, 0.9);
     this.directional.position.set(5, 10, 5);
     scene.add(this.ambient, this.directional);
-
-    this.ui.onDayNightToggle(() => this.toggleDayNight());
   }
 
   tick(delta) {
