@@ -1,11 +1,86 @@
 <div id="game-ui">
-  <div id="coins" class="coins">💰 Coins: 0</div>
+  <div class="top-bar">
+    <div id="coins" class="coins">
+      <img src="/assets/images/money.png" alt="money" class="icon" />
+      <span id="coin-amount">0</span>
+    </div>
 
-  <div id="main-buttons" class="main-buttons">
-    <button id="btn-build" class="btn">🏗️ Build Garden</button>
-    <button id="btn-plants" class="btn disabled">🌿 Plant Crops</button>
-    <button id="btn-animals" class="btn disabled">🐔 Raise Animals</button>
+    <div id="resources" class="resources">
+      <div class="res-item">
+        <img src="/assets/images/corn.png" alt="corn" />
+        <span id="res-corn">0</span>
+      </div>
+      <div class="res-item">
+        <img src="/assets/images/eggs.png" alt="egg" />
+        <span id="res-egg">0</span>
+      </div>
+    </div>
   </div>
 
-  <div id="sub-buttons" class="sub-buttons"></div>
+  <div class="main-buttons">
+    <button id="btn-build" class="btn main-btn">
+      <img src="/assets/images/build.png" alt="Build" />
+      <span>Build</span>
+    </button>
+
+    <button id="btn-plants" class="btn main-btn">
+      <img src="/assets/images/plants.png" alt="Plants" />
+      <span>Plants</span>
+    </button>
+
+    <button id="btn-animals" class="btn main-btn disabled">
+      <img src="/assets/images/animals.png" alt="Animals" />
+      <span>Animals</span>
+    </button>
+  </div>
+
+  <div id="sub-buttons" class="sub-buttons">
+    <!-- 🏗️ Build -->
+    <button id="sub-garden" class="btn sub-btn hidden">
+      <img src="/assets/images/garden.png" alt="Garden Plot" />
+      <span>Garden</span>
+    </button>
+
+    <button id="sub-pen" class="btn sub-btn hidden">
+      <img src="/assets/images/pen.png" alt="Animal Pen" />
+      <span>Pen</span>
+    </button>
+
+    <!-- 🌿 Plants -->
+    <button id="sub-corn" class="btn sub-btn hidden">
+      <img src="/assets/images/corn.png" alt="Corn" />
+      <span>Corn</span>
+    </button>
+
+    <button id="sub-grape" class="btn sub-btn hidden">
+      <img src="/assets/images/grape.png" alt="Grape" />
+      <span>Grape</span>
+    </button>
+
+    <button id="sub-tomato" class="btn sub-btn hidden">
+      <img src="/assets/images/tomato.png" alt="Tomato" />
+      <span>Tomato</span>
+    </button>
+
+    <button id="sub-strawberry" class="btn sub-btn hidden">
+      <img src="/assets/images/strawberry.png" alt="Strawberry" />
+      <span>Strawberry</span>
+    </button>
+
+    <!-- 🐔 Animals -->
+    <button id="sub-chicken" class="btn sub-btn hidden">
+      <img src="/assets/images/chicken.png" alt="Chicken" />
+      <span>Chicken</span>
+    </button>
+
+    <button id="sub-sheep" class="btn sub-btn hidden">
+      <img src="/assets/images/sheep.png" alt="Sheep" />
+      <span>Sheep</span>
+    </button>
+
+    <button id="sub-cow" class="btn sub-btn hidden">
+      <img src="/assets/images/cow.png" alt="Cow" />
+      <span>Cow</span>
+    </button>
+  </div>
 </div>

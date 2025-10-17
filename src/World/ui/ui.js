@@ -26,52 +26,59 @@ export class GameUI {
     this.$btnPlants = document.getElementById("btn-plants");
     this.$btnAnimals = document.getElementById("btn-animals");
 
+    this.$subs = {
+      garden: document.getElementById("sub-garden"),
+      pen: document.getElementById("sub-pen"),
+      corn: document.getElementById("sub-corn"),
+      grape: document.getElementById("sub-grape"),
+      tomato: document.getElementById("sub-tomato"),
+      strawberry: document.getElementById("sub-strawberry"),
+      chicken: document.getElementById("sub-chicken"),
+      sheep: document.getElementById("sub-sheep"),
+      cow: document.getElementById("sub-cow"),
+    };
+
     this.$btnBuild.onclick = () => this._showBuildOptions();
     this.$btnPlants.onclick = () => this._showSubButtons("plants");
     this.$btnAnimals.onclick = () => this._showSubButtons("animals");
-  }
 
-  // --- BUILD MODE ---
-  _showBuildOptions() {
-    this.$subButtons.innerHTML = "";
-    const options = [
-      { label: "🌿 Build Garden Plot", type: "garden" },
-      { label: "🐔 Build Animal Pen", type: "pen" },
-    ];
-
-    options.forEach((opt) => {
-      const btn = document.createElement("button");
-      btn.textContent = opt.label;
-      btn.className = "btn";
-      btn.onclick = () => this.onBuildModeSelect(opt.type);
-      this.$subButtons.appendChild(btn);
+    this.$subs.garden.onclick = () => this.onBuildModeSelect("garden");
+    this.$subs.pen.onclick = () => this.onBuildModeSelect("pen");
+    ["corn", "grape", "tomato", "strawberry"].forEach((p) => {
+      this.$subs[p].onclick = () => this.onItemSelect(p);
+    });
+    ["chicken", "sheep", "cow"].forEach((a) => {
+      this.$subs[a].onclick = () => this.onItemSelect(a);
     });
   }
 
-  // --- CATEGORY ITEMS ---
+  _showBuildOptions() {
+    this._hideAllSubButtons();
+    this.$subs.garden.classList.remove("hidden");
+    this.$subs.pen.classList.remove("hidden");
+  }
+
   _showSubButtons(category) {
     if (this._isDisabled(category)) return;
-
-    this.$subButtons.innerHTML = "";
+    this._hideAllSubButtons();
     this.onCategorySelect(category);
 
     const items =
       category === "plants"
         ? ["corn", "grape", "tomato", "strawberry"]
-        : ["chicken"];
+        : ["chicken", "sheep", "cow"];
 
     items.forEach((item) => {
-      const btn = document.createElement("button");
-      btn.textContent = item;
-      btn.className = "btn";
-      btn.onclick = () => this.onItemSelect(item);
-      this.$subButtons.appendChild(btn);
+      this.$subs[item].classList.remove("hidden");
     });
   }
 
+  _hideAllSubButtons() {
+    Object.values(this.$subs).forEach((btn) => btn.classList.add("hidden"));
+  }
+
   _isDisabled(category) {
-    const btn =
-      category === "plants" ? this.$btnPlants : this.$btnAnimals;
+    const btn = category === "plants" ? this.$btnPlants : this.$btnAnimals;
     return btn.classList.contains("disabled");
   }
 
@@ -81,10 +88,10 @@ export class GameUI {
   }
 
   updateCoins(value) {
-    if (this.$coins) this.$coins.textContent = `💰 Coins: ${value}`;
+    const el = document.getElementById("coin-amount");
+    if (el) el.textContent = value;
   }
 
-  // --- HINTS AND CTA ---
   _createHintElements() {
     this.$hint = document.createElement("div");
     this.$hint.id = "hint-box";
@@ -124,7 +131,9 @@ export class GameUI {
   }
 
   removeHighlights() {
-    document.querySelectorAll(".highlight").forEach((b) => b.classList.remove("highlight"));
+    document
+      .querySelectorAll(".highlight")
+      .forEach((b) => b.classList.remove("highlight"));
   }
 
   onClick(callback) {

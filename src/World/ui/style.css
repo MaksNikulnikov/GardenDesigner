@@ -1,50 +1,165 @@
+/* === БАЗА === */
 #game-ui {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
   font-family: "Inter", sans-serif;
   color: #fff;
   user-select: none;
-  z-index: 100;
+  z-index: 10;
 }
 
-.btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 6px 12px;
-  border-radius: 8px;
-  margin-right: 4px;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.btn:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.btn.disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.main-buttons,
-.sub-buttons {
+.top-bar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(20, 20, 20, 0.45);
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: auto;
 }
 
 .coins {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 6px;
+}
+
+.coins .icon {
+  width: 24px;
+  height: 24px;
+}
+
+.resources {
+  display: flex;
+  gap: 10px;
+}
+
+.res-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 3px 6px;
+  border-radius: 8px;
+}
+
+.res-item img {
+  width: 20px;
+  height: 20px;
+}
+
+.main-buttons {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  pointer-events: auto;
+}
+
+.main-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  width: 70px;
+}
+
+.main-btn img {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 4px;
+}
+
+.main-btn:hover:not(.disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.main-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.btn:hover:not(.disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sub-buttons {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.sub-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  width: 70px;
+}
+
+.sub-btn img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+
+.sub-btn:hover:not(.disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-3px);
+}
+
+.sub-btn.hidden {
+  display: none;
 }
 
 .hint-box {
   position: absolute;
-  bottom: 20%;
+  bottom: 30%;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.75);
@@ -57,11 +172,7 @@
   opacity: 1;
   transition: opacity 0.4s ease;
   pointer-events: none;
-  z-index: 200;
-}
-
-.hidden {
-  opacity: 0;
+  z-index: 20;
 }
 
 .cta-button {
@@ -78,7 +189,8 @@
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-  z-index: 200;
+  z-index: 20;
+  pointer-events: auto;
 }
 
 .cta-button:hover {
@@ -88,4 +200,9 @@
 .highlight {
   outline: 3px solid #ffcc00;
   transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+.hidden {
+  display: none;
 }
