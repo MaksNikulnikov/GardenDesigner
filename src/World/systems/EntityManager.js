@@ -19,9 +19,27 @@ export class EntityManager {
   plantOrSpawn(cell, type, state, ui) {
     const config = GAME_CONFIG.ITEMS[type];
     if (!config) return;
+    // 🌿 Plants
+    if (config.category === "plants" && cell.type === "plants") {
+      this._plant(cell, type, state, ui);
+    }
+    // 🐔 Animals
+    else if (config.category === "animals" && cell.type === "animals") {
+      this._spawnAnimal(cell, type);
+    }
+    // 🚫 Wrong place
+    else {
+      if (cell.type === "plants") {
+        ui.showPlantHint("You can grow only plants here!");
+      } else if (cell.type === "animals") {
+        ui.showAnimalHint("You can raise only animals here!");
+      } else {
+        ui.showHint("You can't place anything here.");
+      }
 
-    if (config.category === "plants") this._plant(cell, type, state, ui);
-    else if (config.category === "animals") this._spawnAnimal(cell, type);
+      // Hide the hint automatically after a short delay
+      setTimeout(() => ui.hideHint(), 2500);
+    }
   }
 
   _plant(cell, type, state, ui) {

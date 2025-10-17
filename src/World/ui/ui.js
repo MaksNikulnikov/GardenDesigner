@@ -105,10 +105,24 @@ export class GameUI {
     document.body.appendChild(this.$cta);
   }
 
-  showHint(text) {
+  // --- Generic hint ---
+  showHint(text, icon = null) {
     if (!this.$hint) return;
-    this.$hint.textContent = text;
+
+    this.$hint.innerHTML = icon
+      ? `<img src="/assets/images/${icon}.png" class="hint-icon" alt=""> <span>${text}</span>`
+      : text;
+
     this.$hint.classList.remove("hidden");
+  }
+
+  // --- Specialized helpers ---
+  showPlantHint(text) {
+    this.showHint(text, "plants"); // expects /assets/images/plants.png
+  }
+
+  showAnimalHint(text) {
+    this.showHint(text, "animals"); // expects /assets/images/animals.png
   }
 
   hideHint() {

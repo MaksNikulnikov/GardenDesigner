@@ -175,6 +175,11 @@
   z-index: 20;
 }
 
+.hint-icon {
+  width: 32px;
+  height: 32px;
+}
+
 .cta-button {
   position: absolute;
   bottom: 8%;
