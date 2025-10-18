@@ -14,7 +14,7 @@ export const FACTORIES = {
   chicken: (opts) => createObjectWithAnimation({ name: "chicken", ...(opts ?? {}) }),
 
   // 🪴 Structures
-  plot: () => createObject({ name: "plot" }),
+  garden: () => createObject({ name: "garden" }),
   pen: () => createObject({ name: "pen" }),
 
   // 🪧 Placeholder (used for empty field slots before building)

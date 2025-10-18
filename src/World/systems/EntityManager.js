@@ -10,6 +10,7 @@ export class EntityManager {
     this.scene = scene;
     this.addUpdatable = addUpdatable;
     this.entities = [];
+    this.isHarvestAllowed = false;
   }
 
   getEntityByCell(cell) {
@@ -48,7 +49,7 @@ export class EntityManager {
     if (!factory || !config) return;
 
     if (state.coins < config.cost) {
-      console.warn("Not enough coins!");
+      ui.showHint("Oh no! You didn't have enough coins!", "money");
       return;
     }
 
@@ -116,7 +117,12 @@ export class EntityManager {
     this.entities.push({ kind: "animal", type, obj, cell });
   }
 
+  alowHarvest() {
+    this.isHarvestAllowed = true;
+  }
+
   harvest(entity, state, ui) {
+    if (!this.isHarvestAllowed) return;
     const config = GAME_CONFIG.ITEMS[entity.type];
     state.coins += config.reward;
     ui.updateCoins(state.coins);
@@ -124,6 +130,14 @@ export class EntityManager {
     this.scene.remove(entity.obj);
     entity.cell.content = null;
     this.entities = this.entities.filter((e) => e !== entity);
+  }
+
+  areAllCropsReady(type = "corn") {
+    const crops = this.entities.filter(
+      (e) => e.kind === "plant" && e.type === type
+    );
+    if (crops.length === 0) return false;
+    return crops.every((e) => e.readyToHarvest);
   }
 
   tick(delta) {

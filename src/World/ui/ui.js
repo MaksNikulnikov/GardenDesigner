@@ -110,6 +110,15 @@ export class GameUI {
     all.forEach((btn) => btn.classList.add("disabled"));
   }
 
+  disableButton(id) {
+    const btn = document.getElementById(id);
+    if (!btn) {
+      console.warn(`⚠️ disableButton: element #${id} not found`);
+      return;
+    }
+    btn.classList.add("disabled");
+  }
+
   enableButton(id) {
     const btn = document.getElementById(id);
     if (!btn) {

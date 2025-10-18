@@ -113,9 +113,9 @@ export class StructureManager {
     return cells;
   }
 
-  createGardenPlot(field) {
-    const offsetY = GAME_CONFIG.OFFSET_Y.PLOT - GAME_CONFIG.OFFSET_Y.PLACEHOLDER;
-    return this._createStructure(field, "plot", FACTORIES.plot, offsetY, "plants");
+  createGarden(field) {
+    const offsetY = GAME_CONFIG.OFFSET_Y.GARDEN - GAME_CONFIG.OFFSET_Y.PLACEHOLDER;
+    return this._createStructure(field, "garden", FACTORIES.garden, offsetY, "plants");
   }
 
   createAnimalPen(field) {

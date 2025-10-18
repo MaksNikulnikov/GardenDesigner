@@ -4,7 +4,7 @@ export const GAME_CONFIG = {
   OFFSET_Y:{
     PLACEHOLDER: 0.25,
     PEN: 0.5,
-    PLOT: 0.5,
+    GARDEN: 0.5,
   },
   ITEMS: {
     corn: {
@@ -64,12 +64,14 @@ export const GAME_CONFIG = {
     },
   },
   STRUCTURES: {
-  plot: {
+  garden: {
     buildTime: 1.5,
+    cost: 12,
     cellLayout: { rows: 3, cols: 2, cellSizeX: 3, cellSizeZ: 3.4 },
   },
   pen: {
     buildTime: 2,
+    cost: 15,
     cellLayout: { rows: 3, cols: 2, cellSizeX: 3, cellSizeZ: 3.2 },
   },}
 };

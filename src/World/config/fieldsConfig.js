@@ -3,7 +3,7 @@ import { GAME_CONFIG } from "./gameConfig";
 
 /**
  * Each placeholder is a large tile (2×3 m) that can host either:
- * - a garden plot (with 6 small cells for plants)
+ * - a garden (with 6 small cells for plants)
  * - or an animal pen (for one animal object)
  */
 export const FIELDS_CONFIG = [

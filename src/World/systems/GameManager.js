@@ -24,7 +24,6 @@ export class GameManager {
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
     this.updatables = [];
-
     // --- Managers ---
     this.field = new FieldManager(scene);
     this.structures = new StructureManager(scene, (fx) =>
@@ -45,12 +44,10 @@ export class GameManager {
       onItemSelect: (item) => this._onItemSelect(item),
     });
 
-    this.ui.updateCoins(this.state.coins);
-
     // --- Scene click handling ---
     this._setupSceneClick();
 
-        // --- Tutorial ---
+    // --- Tutorial ---
     this.tutorial = new TutorialManager(this.ui, this);
 
     this.dayNight = new DayNightManager(scene, this.ui);
@@ -58,9 +55,9 @@ export class GameManager {
       this.ui.onDayNightToggle(() => {
         this.dayNight.toggleDayNight();
       });
-          this.tutorial.start();
+      this.ui.updateCoins(this.state.coins);
+      this.tutorial.start();
     });
-
   }
 
   // ========================
@@ -72,6 +69,10 @@ export class GameManager {
 
   removeUpdatable(obj) {
     this.updatables = this.updatables.filter((o) => o !== obj);
+  }
+
+  clearSelectedItem() {
+    this.state.selectedItem = null;
   }
 
   // ========================
@@ -155,10 +156,18 @@ export class GameManager {
     const mode = this.state.buildMode;
     if (!mode) return;
 
+    if (this.state.coins < GAME_CONFIG.STRUCTURES[mode].cost) {
+      this.ui.showHint("Oh no! You didn't have enough coins!", "money");
+      return;
+    }
+
+    this.state.coins -= GAME_CONFIG.STRUCTURES[mode].cost;
+    this.ui.updateCoins(this.state.coins);
+
     console.log(`🏗️ Building structure: ${mode} on field ${field.id}`);
 
     if (mode === "garden") {
-      field.structure = this.structures.createGardenPlot(field);
+      field.structure = this.structures.createGarden(field);
     } else if (mode === "pen") {
       field.structure = this.structures.createAnimalPen(field);
     }
