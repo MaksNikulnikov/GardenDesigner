@@ -158,10 +158,8 @@ export class GameManager {
 
     if (mode === "garden") {
       field.structure = this.structures.createGardenPlot(field);
-      this.ui.unlockCategory("plants");
     } else if (mode === "pen") {
       field.structure = this.structures.createAnimalPen(field);
-      this.ui.unlockCategory("animals");
     }
 
     this.structures.removePlaceholder(field);

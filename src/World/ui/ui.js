@@ -18,6 +18,7 @@ export class GameUI {
     document.body.insertAdjacentHTML("beforeend", html);
     this._initElements();
     this._createHintElements();
+    this._disableAllButtons();
   }
 
   _initElements() {
@@ -84,9 +85,18 @@ export class GameUI {
     return btn.classList.contains("disabled");
   }
 
-  unlockCategory(category) {
-    if (category === "plants") this.$btnPlants.classList.remove("disabled");
-    if (category === "animals") this.$btnAnimals.classList.remove("disabled");
+  _disableAllButtons() {
+    const all = document.querySelectorAll(".btn");
+    all.forEach((btn) => btn.classList.add("disabled"));
+  }
+
+  enableButton(id) {
+    const btn = document.getElementById(id);
+    if (!btn) {
+      console.warn(`⚠️ enableButton: element #${id} not found`);
+      return;
+    }
+    btn.classList.remove("disabled");
   }
 
   updateCoins(value) {
@@ -107,24 +117,14 @@ export class GameUI {
     document.body.appendChild(this.$cta);
   }
 
-  // --- Generic hint ---
   showHint(text, icon = null) {
     if (!this.$hint) return;
 
     this.$hint.innerHTML = icon
-      ? `<img src="/assets/images/${icon}.png" class="hint-icon" alt=""> <span>${text}</span>`
+      ? `<img src="/assets/images/${icon}.png" alt=""> <span>${text}</span>`
       : text;
 
     this.$hint.classList.remove("hidden");
-  }
-
-  // --- Specialized helpers ---
-  showPlantHint(text) {
-    this.showHint(text, "plants"); // expects /assets/images/plants.png
-  }
-
-  showAnimalHint(text) {
-    this.showHint(text, "animals"); // expects /assets/images/animals.png
   }
 
   hideHint() {
@@ -165,10 +165,6 @@ export class GameUI {
 
   onDayNightToggle(callback) {
     const btn = document.getElementById("toggle-day-night");
-    if (!btn) {
-      console.warn("⚠️ toggle-day-night not found yet");
-      return;
-    }
     btn.addEventListener("click", () => callback?.());
   }
 
@@ -183,5 +179,4 @@ export class GameUI {
     icon.src = isDay ? "/assets/images/sun.png" : "/assets/images/moon.png";
     icon.alt = isDay ? "Day" : "Night";
   }
-
 }

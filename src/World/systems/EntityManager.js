@@ -30,9 +30,9 @@ export class EntityManager {
     // 🚫 Wrong place
     else {
       if (cell.type === "plants") {
-        ui.showPlantHint("You can grow only plants here!");
+        ui.showHint("You can grow only plants here!", "plants");
       } else if (cell.type === "animals") {
-        ui.showAnimalHint("You can raise only animals here!");
+        ui.showHint("You can raise only animals here!", "animals");
       } else {
         ui.showHint("You can't place anything here.");
       }
