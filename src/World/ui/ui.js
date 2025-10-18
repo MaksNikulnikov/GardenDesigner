@@ -5,6 +5,7 @@ export class GameUI {
     this.onItemSelect = onItemSelect;
     this.activeMenu = null;
     this._menuOpenedCallbacks = {};
+    this._animalCounters = {};
 
     this.ready = this._loadUI();
 
@@ -20,7 +21,6 @@ export class GameUI {
     document.body.insertAdjacentHTML("beforeend", html);
     this._initElements();
     this._createHintElements();
-    this.disableAllButtons();
   }
 
   _initElements() {
@@ -240,7 +240,38 @@ export class GameUI {
   updateDayNight(isDay) {
     const icon = document.getElementById("day-night-icon");
     if (!icon) return;
+    // @ts-ignore
     icon.src = isDay ? "/assets/images/sun.png" : "/assets/images/moon.png";
+    // @ts-ignore
     icon.alt = isDay ? "Day" : "Night";
   }
+
+createAnimalCounter(id, icon = "egg") {
+  const el = document.createElement("div");
+  el.className = "animal-counter";
+  el.innerHTML = `
+    <img src="/assets/images/${icon}.png" alt="" />
+    <span>0</span>`;
+  document.body.appendChild(el);
+  this._animalCounters ??= {};
+  this._animalCounters[id] = el;
+}
+
+updateAnimalCounter(id, value, screenX, screenY) {
+  if (!this._animalCounters?.[id]) return;
+
+  const el = this._animalCounters[id];
+  el.style.left = `${screenX}px`;
+  el.style.top = `${screenY}px`;
+  el.querySelector("span").textContent = value;
+}
+
+removeAnimalCounter(id) {
+  const el = this._animalCounters?.[id];
+  if (el) {
+    el.remove();
+    delete this._animalCounters[id];
+  }
+}
+
 }

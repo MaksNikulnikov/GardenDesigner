@@ -56,9 +56,10 @@ export class Step5 extends TutorialStep {
 
   _onAllChickensPlaced() {
     const ui = this.manager.ui;
+    this.manager.game.clearSelectedItem()
     ui.removeHighlights();
     ui.hideAllSubButtons?.();
-    ui.disableButton("sub-chicken");
+    ui.disableAllButtons();
 
     ui.showHint("Fantastic! You now have a whole flock! 🐔🐔🐔🐔🐔", "chicken");
 
@@ -70,7 +71,6 @@ export class Step5 extends TutorialStep {
 
   complete() {
     const ui = this.manager.ui;
-    ui.removeHighlights();
     ui.hideHint();
   }
 }

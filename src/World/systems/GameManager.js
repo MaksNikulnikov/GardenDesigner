@@ -31,7 +31,7 @@ export class GameManager {
     this.structures = new StructureManager(scene, (fx) =>
       this.addUpdatable(fx)
     );
-    this.entities = new EntityManager(scene, (obj) => this.addUpdatable(obj));
+    this.entities = new EntityManager(scene, (obj) => this.addUpdatable(obj), this.camera);
 
     // --- Create placeholders ---
     for (const field of this.field.fields) {
@@ -208,7 +208,7 @@ export class GameManager {
   // ⏱️ Game Loop
   // ========================
   tick(delta) {
-    this.entities.tick(delta);
+    this.entities.tick(delta, this.state, this.ui);
     this.dayNight.tick(delta);
     for (const obj of this.updatables) obj.tick?.(delta);
   }

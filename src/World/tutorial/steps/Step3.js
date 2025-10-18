@@ -23,7 +23,7 @@ export class Step3 extends TutorialStep {
     const game = this.manager.game;
 
     ui.showHint("Your corn is ready to harvest! 🌾 Tap it to collect!", "corn");
-    game.entities.alowHarvest?.();
+    game.entities.allowHarvest?.();
 
     this._waitForHarvest(() => {
       ui.showHint("Great job! You harvested your first corn! 🎉", "corn");

@@ -1,7 +1,7 @@
 export const GAME_CONFIG = {
   INITIAL_COINS: 50,
   DAY_DURATION: 240,
-  OFFSET_Y:{
+  OFFSET_Y: {
     PLACEHOLDER: 0.25,
     PEN: 0.5,
     GARDEN: 0.5,
@@ -17,7 +17,9 @@ export const GAME_CONFIG = {
        */
       growthTime: [3, 3, 0],
       reward: {
-        type: "corn", amount: 5,},
+        type: "corn",
+        amount: 5,
+      },
       cost: 2,
     },
     tomato: {
@@ -59,21 +61,27 @@ export const GAME_CONFIG = {
     chicken: {
       category: "animals",
       displayName: "Chicken",
-      growthTime: [3, 3, 3],
-       reward: {
-        type: "eggs", amount: 5},
+      productionTime: 6,
+      feedType: "corn",
+      feedPerEgg: 2,
+      maxStorage: 5,
+      reward: {
+        type: "eggs",
+        amount: 5,
+      },
       cost: 4,
     },
   },
   STRUCTURES: {
-  garden: {
-    buildTime: 1.5,
-    cost: 12,
-    cellLayout: { rows: 3, cols: 2, cellSizeX: 3, cellSizeZ: 3.4 },
+    garden: {
+      buildTime: 1.5,
+      cost: 12,
+      cellLayout: { rows: 3, cols: 2, cellSizeX: 3, cellSizeZ: 3.4 },
+    },
+    pen: {
+      buildTime: 2,
+      cost: 15,
+      cellLayout: { rows: 3, cols: 2, cellSizeX: 3, cellSizeZ: 3.2 },
+    },
   },
-  pen: {
-    buildTime: 2,
-    cost: 15,
-    cellLayout: { rows: 3, cols: 2, cellSizeX: 3, cellSizeZ: 3.2 },
-  },}
 };

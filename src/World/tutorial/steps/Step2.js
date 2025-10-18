@@ -35,6 +35,7 @@ export class Step2 extends TutorialStep {
         "corn"
       );
     } else {
+      this.manager.game.clearSelectedItem()
       this.isComplete = true;
     }
   }
@@ -43,7 +44,7 @@ export class Step2 extends TutorialStep {
     const ui = this.manager.ui;
     ui.removeHighlights();
     ui.hideAllSubButtons?.();
-    ui.disableButton("sub-corn");
+    ui.disableAllButtons()
     ui.showHint("Awesome! 🌽 Now let’s wait for your corn to grow...");
   }
 }

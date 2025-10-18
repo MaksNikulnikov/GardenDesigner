@@ -35,7 +35,7 @@ export class Step4 extends TutorialStep {
     const ui = this.manager.ui;
     ui.removeHighlights();
     ui.hideAllSubButtons?.();
-
+    ui.disableAllButtons();
     ui.showHint("Perfect! You’ve built your first animal pen! 🐑", "pen");
 
     setTimeout(() => {
@@ -45,7 +45,6 @@ export class Step4 extends TutorialStep {
 
   complete() {
     const ui = this.manager.ui;
-    ui.removeHighlights();
     ui.hideHint();
   }
 }
