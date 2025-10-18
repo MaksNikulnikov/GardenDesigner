@@ -50,16 +50,17 @@ export class GameManager {
     // --- Scene click handling ---
     this._setupSceneClick();
 
+        // --- Tutorial ---
+    this.tutorial = new TutorialManager(this.ui, this);
+
     this.dayNight = new DayNightManager(scene, this.ui);
     this.ui.ready.then(() => {
       this.ui.onDayNightToggle(() => {
         this.dayNight.toggleDayNight();
       });
+          this.tutorial.start();
     });
 
-    // --- Tutorial ---
-    this.tutorial = new TutorialManager(this.ui, this);
-    this.tutorial.start();
   }
 
   // ========================
