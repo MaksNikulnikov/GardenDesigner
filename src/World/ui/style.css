@@ -300,8 +300,6 @@
 
 .highlight {
   outline: 3px solid #ffcc00;
-  transform: scale(1.1);
-  transition: transform 0.2s ease;
 }
 
 .hidden {
@@ -333,7 +331,7 @@
 
 .main-buttons {
     position: absolute;
-    right: 12px;
+    right: 18px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
@@ -346,7 +344,7 @@
 
   .sub-buttons {
     position: absolute;
-    right: 80px;
+    right: 86px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;

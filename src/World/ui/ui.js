@@ -3,6 +3,7 @@ export class GameUI {
     this.onBuildModeSelect = onBuildModeSelect;
     this.onCategorySelect = onCategorySelect;
     this.onItemSelect = onItemSelect;
+    this.activeMenu = null;
 
     this.ready = this._loadUI();
 
@@ -41,9 +42,9 @@ export class GameUI {
       cow: document.getElementById("sub-cow"),
     };
 
-    this.$btnBuild.onclick = () => this._showBuildOptions();
-    this.$btnPlants.onclick = () => this._showSubButtons("plants");
-    this.$btnAnimals.onclick = () => this._showSubButtons("animals");
+    this.$btnBuild.onclick = () => this._toggleMenu("build");
+    this.$btnPlants.onclick = () => this._toggleMenu("plants");
+    this.$btnAnimals.onclick = () => this._toggleMenu("animals");
 
     this.$subs.garden.onclick = () => this.onBuildModeSelect("garden");
     this.$subs.pen.onclick = () => this.onBuildModeSelect("pen");
@@ -55,15 +56,34 @@ export class GameUI {
     });
   }
 
+  onMenuOpened(menuName, callback) {
+    if (!this._menuOpenedCallbacks) this._menuOpenedCallbacks = {};
+    this._menuOpenedCallbacks[menuName] = callback;
+  }
+
+  _toggleMenu(menu) {
+    if (this.activeMenu === menu) {
+      this.hideAllSubButtons();
+      this.activeMenu = null;
+      return;
+    }
+
+    this.activeMenu = menu;
+    this.hideAllSubButtons();
+
+    if (menu === "build") this._showBuildOptions();
+    else this._showSubButtons(menu);
+
+    this._menuOpenedCallbacks?.[menu]?.();
+  }
+
   _showBuildOptions() {
-    this._hideAllSubButtons();
     this.$subs.garden.classList.remove("hidden");
     this.$subs.pen.classList.remove("hidden");
   }
 
   _showSubButtons(category) {
     if (this._isDisabled(category)) return;
-    this._hideAllSubButtons();
     this.onCategorySelect(category);
 
     const items =
@@ -76,7 +96,7 @@ export class GameUI {
     });
   }
 
-  _hideAllSubButtons() {
+  hideAllSubButtons() {
     Object.values(this.$subs).forEach((btn) => btn.classList.add("hidden"));
   }
 
@@ -165,6 +185,7 @@ export class GameUI {
 
   onDayNightToggle(callback) {
     const btn = document.getElementById("toggle-day-night");
+    if (!btn) return;
     btn.addEventListener("click", () => callback?.());
   }
 
