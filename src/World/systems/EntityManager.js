@@ -123,9 +123,34 @@ export class EntityManager {
 
   harvest(entity, state, ui) {
     if (!this.isHarvestAllowed) return;
+
     const config = GAME_CONFIG.ITEMS[entity.type];
-    state.coins += config.reward;
-    ui.updateCoins(state.coins);
+    if (!config || !config.reward) return;
+    const reward = config.reward;
+    if (typeof reward === "object" && reward.type && reward.amount) {
+      const resourceType = reward.type;
+      const amount = reward.amount;
+
+      if (state[resourceType] !== undefined) {
+        state[resourceType] += amount;
+
+        const updateMethod = `update${resourceType
+          .charAt(0)
+          .toUpperCase()}${resourceType.slice(1)}`;
+        if (typeof ui[updateMethod] === "function") {
+          ui[updateMethod](state[resourceType]);
+        } else {
+          console.warn(
+            `⚠️ UI method ${updateMethod}() not found for reward type "${resourceType}"`
+          );
+        }
+      } else {
+        console.warn(`⚠️ Unknown reward type: ${resourceType}`);
+      }
+    } else {
+      state.coins += reward;
+      ui.updateCoins(state.coins);
+    }
 
     this.scene.remove(entity.obj);
     entity.cell.content = null;

@@ -4,6 +4,7 @@ export class GameUI {
     this.onCategorySelect = onCategorySelect;
     this.onItemSelect = onItemSelect;
     this.activeMenu = null;
+    this._menuOpenedCallbacks = {};
 
     this.ready = this._loadUI();
 
@@ -19,45 +20,48 @@ export class GameUI {
     document.body.insertAdjacentHTML("beforeend", html);
     this._initElements();
     this._createHintElements();
-    this._disableAllButtons();
+    this.disableAllButtons();
   }
 
   _initElements() {
-    this.$coins = document.getElementById("coins");
-    this.$subButtons = document.getElementById("sub-buttons");
 
     this.$btnBuild = document.getElementById("btn-build");
     this.$btnPlants = document.getElementById("btn-plants");
     this.$btnAnimals = document.getElementById("btn-animals");
 
     this.$subs = {
-      garden: document.getElementById("sub-garden"),
-      pen: document.getElementById("sub-pen"),
-      corn: document.getElementById("sub-corn"),
-      grape: document.getElementById("sub-grape"),
-      tomato: document.getElementById("sub-tomato"),
-      strawberry: document.getElementById("sub-strawberry"),
-      chicken: document.getElementById("sub-chicken"),
-      sheep: document.getElementById("sub-sheep"),
-      cow: document.getElementById("sub-cow"),
+      "sub-garden": document.getElementById("sub-garden"),
+      "sub-pen": document.getElementById("sub-pen"),
+      "sub-corn": document.getElementById("sub-corn"),
+      "sub-grape": document.getElementById("sub-grape"),
+      "sub-tomato": document.getElementById("sub-tomato"),
+      "sub-strawberry": document.getElementById("sub-strawberry"),
+      "sub-chicken": document.getElementById("sub-chicken"),
+      "sub-sheep": document.getElementById("sub-sheep"),
+      "sub-cow": document.getElementById("sub-cow"),
     };
 
     this.$btnBuild.onclick = () => this._toggleMenu("build");
     this.$btnPlants.onclick = () => this._toggleMenu("plants");
     this.$btnAnimals.onclick = () => this._toggleMenu("animals");
 
-    this.$subs.garden.onclick = () => this.onBuildModeSelect("garden");
-    this.$subs.pen.onclick = () => this.onBuildModeSelect("pen");
-    ["corn", "grape", "tomato", "strawberry"].forEach((p) => {
-      this.$subs[p].onclick = () => this.onItemSelect(p);
+    this.$subs["sub-garden"].onclick = () => this.onBuildModeSelect("garden");
+    this.$subs["sub-pen"].onclick = () => this.onBuildModeSelect("pen");
+
+    ["sub-corn", "sub-grape", "sub-tomato", "sub-strawberry"].forEach((id) => {
+      this.$subs[id].onclick = () =>
+        this.onItemSelect(id.replace("sub-", ""));
     });
-    ["chicken", "sheep", "cow"].forEach((a) => {
-      this.$subs[a].onclick = () => this.onItemSelect(a);
+    ["sub-chicken", "sub-sheep", "sub-cow"].forEach((id) => {
+      this.$subs[id].onclick = () =>
+        this.onItemSelect(id.replace("sub-", ""));
     });
   }
 
+  // ============================================================
+  // 🎛️ MENU HANDLING
+  // ============================================================
   onMenuOpened(menuName, callback) {
-    if (!this._menuOpenedCallbacks) this._menuOpenedCallbacks = {};
     this._menuOpenedCallbacks[menuName] = callback;
   }
 
@@ -71,28 +75,25 @@ export class GameUI {
     this.activeMenu = menu;
     this.hideAllSubButtons();
 
-    if (menu === "build") this._showBuildOptions();
-    else this._showSubButtons(menu);
+    switch (menu) {
+      case "build":
+        this._showButtons(["sub-garden", "sub-pen"]);
+        break;
+      case "plants":
+        this._showButtons(["sub-corn", "sub-grape", "sub-tomato", "sub-strawberry"]);
+        break;
+      case "animals":
+        this._showButtons(["sub-chicken", "sub-sheep", "sub-cow"]);
+        break;
+    }
 
     this._menuOpenedCallbacks?.[menu]?.();
   }
 
-  _showBuildOptions() {
-    this.$subs.garden.classList.remove("hidden");
-    this.$subs.pen.classList.remove("hidden");
-  }
-
-  _showSubButtons(category) {
-    if (this._isDisabled(category)) return;
-    this.onCategorySelect(category);
-
-    const items =
-      category === "plants"
-        ? ["corn", "grape", "tomato", "strawberry"]
-        : ["chicken", "sheep", "cow"];
-
-    items.forEach((item) => {
-      this.$subs[item].classList.remove("hidden");
+  _showButtons(ids = []) {
+    ids.forEach((id) => {
+      const btn = this.$subs[id];
+      if (btn) btn.classList.remove("hidden");
     });
   }
 
@@ -100,23 +101,13 @@ export class GameUI {
     Object.values(this.$subs).forEach((btn) => btn.classList.add("hidden"));
   }
 
-  _isDisabled(category) {
-    const btn = category === "plants" ? this.$btnPlants : this.$btnAnimals;
-    return btn.classList.contains("disabled");
-  }
-
-  _disableAllButtons() {
-    const all = document.querySelectorAll(".btn");
-    all.forEach((btn) => btn.classList.add("disabled"));
-  }
-
-  disableButton(id) {
-    const btn = document.getElementById(id);
-    if (!btn) {
-      console.warn(`⚠️ disableButton: element #${id} not found`);
-      return;
-    }
-    btn.classList.add("disabled");
+  // ============================================================
+  // 🔒 BUTTON CONTROL
+  // ============================================================
+  disableAllButtons() {
+    document.querySelectorAll(".btn").forEach((btn) => {
+      btn.classList.add("disabled");
+    });
   }
 
   enableButton(id) {
@@ -128,11 +119,36 @@ export class GameUI {
     btn.classList.remove("disabled");
   }
 
+  disableButton(id) {
+    const btn = document.getElementById(id);
+    if (!btn) {
+      console.warn(`⚠️ disableButton: element #${id} not found`);
+      return;
+    }
+    btn.classList.add("disabled");
+  }
+
+  // ============================================================
+  // 💰 RESOURCES
+  // ============================================================
   updateCoins(value) {
     const el = document.getElementById("coin-amount");
     if (el) el.textContent = value;
   }
 
+  updateCorn(value) {
+    const el = document.getElementById("res-corn");
+    if (el) el.textContent = value;
+  }
+
+  updateEggs(value) {
+    const el = document.getElementById("res-eggs");
+    if (el) el.textContent = value;
+  }
+
+  // ============================================================
+  // 💬 HINTS
+  // ============================================================
   _createHintElements() {
     this.$hint = document.createElement("div");
     this.$hint.id = "hint-box";
@@ -148,39 +164,31 @@ export class GameUI {
 
   showHint(text, icon = null) {
     if (!this.$hint) return;
-
     this.$hint.innerHTML = icon
-      ? `<img src="/assets/images/${icon}.png" alt=""> <span>${text}</span>`
+      ? `<img src="/assets/images/${icon}.png" alt=""><span>${text}</span>`
       : text;
-
     this.$hint.classList.remove("hidden");
   }
 
   hideHint() {
-    if (this.$hint) this.$hint.classList.add("hidden");
+    this.$hint?.classList.add("hidden");
   }
 
-  showCTA(text = "Download Now") {
-    if (!this.$cta) return;
-    this.$cta.textContent = text;
-    this.$cta.classList.remove("hidden");
-  }
-
-  hideCTA() {
-    if (this.$cta) this.$cta.classList.add("hidden");
-  }
-
+  // ============================================================
+  // ✨ VISUAL STATE
+  // ============================================================
   highlightButton(id) {
     const btn = document.getElementById(id);
     if (btn) btn.classList.add("highlight");
   }
 
   removeHighlights() {
-    document
-      .querySelectorAll(".highlight")
-      .forEach((b) => b.classList.remove("highlight"));
+    document.querySelectorAll(".highlight").forEach((b) => b.classList.remove("highlight"));
   }
 
+  // ============================================================
+  // 🕹️ INPUT / MISC
+  // ============================================================
   onClick(callback) {
     if (this._globalClickHandler) {
       document.removeEventListener("pointerdown", this._globalClickHandler);

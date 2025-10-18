@@ -16,7 +16,8 @@ export const GAME_CONFIG = {
        * and must match the number of stages available in the 3D model.
        */
       growthTime: [3, 3, 0],
-      reward: 5,
+      reward: {
+        type: "corn", amount: 5,},
       cost: 2,
     },
     tomato: {
@@ -59,7 +60,8 @@ export const GAME_CONFIG = {
       category: "animals",
       displayName: "Chicken",
       growthTime: [3, 3, 3],
-      reward: 6,
+       reward: {
+        type: "eggs", amount: 5},
       cost: 4,
     },
   },
