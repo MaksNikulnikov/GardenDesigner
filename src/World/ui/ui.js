@@ -24,7 +24,6 @@ export class GameUI {
   }
 
   _initElements() {
-
     this.$btnBuild = document.getElementById("btn-build");
     this.$btnPlants = document.getElementById("btn-plants");
     this.$btnAnimals = document.getElementById("btn-animals");
@@ -49,12 +48,10 @@ export class GameUI {
     this.$subs["sub-pen"].onclick = () => this.onBuildModeSelect("pen");
 
     ["sub-corn", "sub-grape", "sub-tomato", "sub-strawberry"].forEach((id) => {
-      this.$subs[id].onclick = () =>
-        this.onItemSelect(id.replace("sub-", ""));
+      this.$subs[id].onclick = () => this.onItemSelect(id.replace("sub-", ""));
     });
     ["sub-chicken", "sub-sheep", "sub-cow"].forEach((id) => {
-      this.$subs[id].onclick = () =>
-        this.onItemSelect(id.replace("sub-", ""));
+      this.$subs[id].onclick = () => this.onItemSelect(id.replace("sub-", ""));
     });
   }
 
@@ -80,7 +77,12 @@ export class GameUI {
         this._showButtons(["sub-garden", "sub-pen"]);
         break;
       case "plants":
-        this._showButtons(["sub-corn", "sub-grape", "sub-tomato", "sub-strawberry"]);
+        this._showButtons([
+          "sub-corn",
+          "sub-grape",
+          "sub-tomato",
+          "sub-strawberry",
+        ]);
         break;
       case "animals":
         this._showButtons(["sub-chicken", "sub-sheep", "sub-cow"]);
@@ -128,6 +130,28 @@ export class GameUI {
     btn.classList.add("disabled");
   }
 
+  // =============================
+  // 📲 CTA button
+  // =============================
+  showCTA(text = "Download Now", onClick = null) {
+    if (!this.$cta) {
+      this.$cta = document.getElementById("cta-button");
+      if (!this.$cta) return;
+    }
+
+    this.$cta.textContent = text;
+    this.$cta.classList.remove("hidden");
+
+    if (onClick) {
+      this.$cta.onclick = () => onClick();
+    }
+  }
+
+  hideCTA() {
+    if (!this.$cta) return;
+    this.$cta.classList.add("hidden");
+    this.$cta.onclick = null;
+  }
   // ============================================================
   // 💰 RESOURCES
   // ============================================================
@@ -183,7 +207,9 @@ export class GameUI {
   }
 
   removeHighlights() {
-    document.querySelectorAll(".highlight").forEach((b) => b.classList.remove("highlight"));
+    document
+      .querySelectorAll(".highlight")
+      .forEach((b) => b.classList.remove("highlight"));
   }
 
   // ============================================================
