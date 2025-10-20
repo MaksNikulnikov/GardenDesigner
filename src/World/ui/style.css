@@ -1,12 +1,10 @@
-/* === БАЗА === */
 #game-ui {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  font-family: "Inter", sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   color: #fff;
   user-select: none;
   z-index: 10;
@@ -16,10 +14,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(20, 20, 20, 0.45);
-  padding: 6px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 0 0 12px 12px;
   pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .coins {
@@ -28,8 +29,8 @@
   gap: 6px;
   font-size: 18px;
   font-weight: 600;
+  color: #fff;
 }
-
 .coins .icon {
   width: 24px;
   height: 24px;
@@ -39,19 +40,51 @@
   display: flex;
   gap: 10px;
 }
-
 .res-item {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 3px 6px;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-weight: 600;
 }
-
 .res-item img {
   width: 20px;
   height: 20px;
+}
+
+.day-night {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px 12px;
+  border-radius: 12px;
+  pointer-events: auto;
+  transition: background 0.3s ease;
+}
+.day-night img {
+  width: 28px;
+  height: 28px;
+}
+.day-night span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+#toggle-day-night {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+#toggle-day-night:hover {
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .main-buttons {
@@ -69,49 +102,26 @@
   flex-direction: column;
   align-items: center;
   background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  padding: 10px 12px;
   cursor: pointer;
   color: #fff;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   font-size: 14px;
-  width: 70px;
+  width: 80px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
-
 .main-btn img {
   width: 36px;
   height: 36px;
   margin-bottom: 4px;
 }
-
 .main-btn:hover:not(.disabled) {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-3px);
 }
-
 .main-btn.disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 16px;
-}
-
-.btn:hover:not(.disabled) {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-}
-
-.btn.disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
@@ -125,163 +135,78 @@
   gap: 10px;
   pointer-events: auto;
 }
-
 .sub-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   color: #fff;
   padding: 6px 10px;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   font-size: 14px;
-  width: 70px;
+  width: 72px;
 }
-
 .sub-btn img {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
   margin-bottom: 4px;
 }
-
 .sub-btn:hover:not(.disabled) {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.3);
   transform: translateY(-3px);
 }
-
 .sub-btn.hidden {
   display: none;
 }
 
 .hint-box {
   position: absolute;
-  bottom: 35%;
+  bottom: 34%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(20px);
   display: inline-flex;
   align-items: center;
   gap: 10px;
-
-  background: linear-gradient(180deg, #fff6b8 0%, #ffe57e 100%);
+  background: linear-gradient(180deg, #fff7ba 0%, #ffe97a 100%);
   color: #2b3a1f;
   border: 2px solid #4caf50;
   border-radius: 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-
   padding: 14px 22px;
   font-size: 18px;
   font-weight: 600;
   text-align: center;
   line-height: 1.4;
   max-width: 80%;
-
-  opacity: 0.6;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
   pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
   z-index: 20;
 }
-
-.hint-box.hidden {
-  opacity: 0;
-  transform: translateX(-50%) translateY(10px);
+.hint-box:not(.hidden) {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
-
 .hint-box img {
   width: 36px;
   height: 36px;
   object-fit: contain;
 }
 
-@media (max-width: 600px) {
-  .hint-box {
-    flex-direction: column;
-    gap: 6px;
-    padding: 12px 18px;
-    font-size: 16px;
-  }
-
-  .hint-box img {
-    width: 28px;
-    height: 28px;
-  }
-}
-
-.daytime-indicator {
-  position: absolute;
-  left: 50%;
-  top: 8px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 4px 10px;
-  pointer-events: auto;
-  font-weight: 600;
-}
-
-.daytime-indicator img {
-  width: 20px;
-  height: 20px;
-}
-
-.day-night {
-  position: absolute;
-  top: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.35);
-  padding: 4px 10px;
-  border-radius: 12px;
-  pointer-events: auto;
-}
-
-.day-night img {
-  width: 28px;
-  height: 28px;
-}
-
-.day-night span {
-  font-size: 16px;
-  color: #fff;
-  font-weight: 600;
-  min-width: 80px;
-  text-align: center;
-}
-
-.small-btn {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background 0.2s ease;
-}
-
-.small-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
 .cta-button {
   position: absolute;
   bottom: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(180deg, #ffcc33 0%, #ff9933 100%);
+  transform: translate(-50%, 30px);
+  background: linear-gradient(180deg, #ffda47 0%, #ff9f2e 100%);
   color: #2b1a00;
   border: none;
   padding: 16px 32px;
-  border-radius: 14px;
+  border-radius: 16px;
   font-size: 20px;
   font-weight: 700;
   cursor: pointer;
@@ -290,19 +215,15 @@
   z-index: 50;
   pointer-events: auto;
   opacity: 0;
-  transform: translate(-50%, 20px);
 }
-
 .cta-button:not(.hidden) {
   opacity: 1;
   transform: translate(-50%, 0);
 }
-
 .cta-button:hover {
   background: linear-gradient(180deg, #ffe066 0%, #ffb347 100%);
   transform: translate(-50%, -2px);
 }
-
 .cta-button.hidden {
   pointer-events: none;
 }
@@ -310,145 +231,34 @@
 .highlight {
   outline: 3px solid #ffcc00;
 }
-
-.hidden {
-  display: none;
-}
-
 .animal-counter {
   position: absolute;
   pointer-events: none;
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.7);
-  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 3px 8px;
   border-radius: 8px;
   font-weight: 700;
   font-size: 14px;
   transform: translate(-50%, -100%);
   color: #4b3c1f;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
-
 .animal-counter img {
   width: 16px;
   height: 16px;
   object-fit: contain;
 }
 
-@media (max-height: 550px) and (orientation: landscape) {
-  .main-btn,
-  .sub-btn {
-    width: 56px;
-    padding: 6px 6px;
-    font-size: 12px;
-  }
-
-  .main-btn img,
-  .sub-btn img {
-    width: 28px;
-    height: 28px;
-    margin-bottom: 2px;
-  }
-
-  .top-bar {
-    padding: 4px 8px;
-  }
-
-  .coins {
-    font-size: 14px;
-  }
-
-  .main-buttons {
-    position: absolute;
-    right: 18px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
-    bottom: auto;
-    left: auto;
-  }
-
-  .sub-buttons {
-    position: absolute;
-    right: 86px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
-    bottom: auto;
-    left: auto;
-  }
-
-  .hint-box {
-    position: absolute;
-    bottom: 35%;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-
-    background: linear-gradient(180deg, #fff6b8 0%, #ffe57e 100%);
-    color: #2b3a1f;
-    border: 2px solid #4caf50;
-    border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-
-    padding: 14px 22px;
-    font-size: 18px;
-    font-weight: 600;
-    text-align: center;
-    line-height: 1.4;
-    max-width: 80%;
-
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s ease, transform 0.4s ease;
-    z-index: 20;
-  }
-
-  .hint-box.showing {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  .hint-box.hidden {
-    opacity: 0;
-    transform: translateX(-50%) translateY(10px);
-  }
-
-  .hint-box img {
-    width: 28px;
-    height: 28px;
-  }
-
-  .cta-button {
-    bottom: 50%;
-    padding: 10px 18px;
-    font-size: 16px;
-  }
-
-  .daytime-indicator,
-  .day-night {
-    top: 4px;
-    padding: 2px 6px;
-  }
-
-  .daytime-indicator img,
-  .day-night img {
-    width: 18px;
-    height: 18px;
-  }
-
-  .day-night span {
-    font-size: 14px;
-    min-width: auto;
-  }
+.main-btn.disabled,
+.sub-btn.disabled {
+  opacity: 0.45 !important;
+  filter: grayscale(0.6);
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  transform: none !important;
 }
