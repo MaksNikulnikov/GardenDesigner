@@ -4,6 +4,7 @@ export class Step6 extends TutorialStep {
   constructor(manager) {
     super(manager);
     this.requiredEggs = 5;
+    this._checkInterval = null;
   }
 
   start() {
@@ -22,59 +23,47 @@ export class Step6 extends TutorialStep {
     ui.enableButton("sub-strawberry");
     ui.enableButton("sub-chicken");
 
-    ui.showHint(
-      "Now your chickens are laying eggs!\nCollect 5 eggs to complete your training.",
-      "eggs",
-      { persist: true }
-    );
+    ui.showHint("Now your chickens are laying eggs!", "eggs", { persist: true });
 
-    this._trackEggCollection();
+    this._startEggTracking();
   }
 
-  _trackEggCollection() {
+  _startEggTracking() {
     const ui = this.manager.ui;
     const game = this.manager.game;
 
-    const check = () => {
+    this._checkInterval = setInterval(() => {
       const collected = game.state.eggs ?? 0;
 
       if (collected >= this.requiredEggs) {
+        clearInterval(this._checkInterval);
         this._onEggGoalReached();
       } else {
         ui.showHint(
           `You collected ${collected}/${this.requiredEggs} eggs\nKeep going!`,
           "eggs"
         );
-        requestAnimationFrame(check);
       }
-    };
-
-    requestAnimationFrame(check);
+    }, 5000);
   }
 
   _onEggGoalReached() {
     const ui = this.manager.ui;
     const game = this.manager.game;
 
-    ui.showHint(
-      "Amazing! You collected enough eggs!\nYou're now a true farmer!",
-      "farm",
-      { persist: true }
-    );
+    ui.showHint("Amazing! You collected enough eggs!\nYou're now a true farmer!", "animals");
 
     setTimeout(() => {
       ui.showCTA("Download GardenMakeover");
+      game.stop?.();
+      if (game.timeScale !== undefined) game.timeScale = 0;
+      this.isComplete = true;
     }, 2000);
-
-    if (game.stop) game.stop();
-    if (game.timeScale !== undefined) game.timeScale = 0;
-
-    this.isComplete = true;
   }
 
   complete() {
-    const ui = this.manager.ui;
-    ui.hideHint();
-    ui.disableAllButtons();
+    clearInterval(this._checkInterval);
+    this.manager.ui.hideHint?.();
+    this.manager.ui.disableAllButtons?.();
   }
 }

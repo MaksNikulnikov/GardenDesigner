@@ -257,12 +257,10 @@ export class GameUI {
     icon.alt = isDay ? "Day" : "Night";
   }
 
-  createAnimalCounter(id, icon = "egg") {
+  createAnimalCounter(id) {
     const el = document.createElement("div");
     el.className = "animal-counter";
-    el.innerHTML = `
-    <img src="/assets/images/${icon}.png" alt="" />
-    <span>0</span>`;
+    el.innerHTML = "<span>0</span>";
     document.body.appendChild(el);
     this._animalCounters ??= {};
     this._animalCounters[id] = el;

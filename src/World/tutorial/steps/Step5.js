@@ -15,7 +15,7 @@ export class Step5 extends TutorialStep {
 
     ui.highlightButton("btn-animals");
     ui.showHint(
-      "Now let's add some chickens to your new pen! 🐔",
+      "Now let's add some chickens to your new pen!",
       "animals"
     );
 
