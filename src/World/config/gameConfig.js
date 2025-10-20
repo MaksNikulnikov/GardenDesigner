@@ -67,7 +67,7 @@ export const GAME_CONFIG = {
       maxStorage: 5,
       reward: {
         type: "eggs",
-        amount: 5,
+        amount: 1,
       },
       cost: 4,
     },

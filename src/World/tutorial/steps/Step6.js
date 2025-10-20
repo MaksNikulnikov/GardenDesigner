@@ -24,7 +24,7 @@ export class Step6 extends TutorialStep {
 
     ui.showHint(
       "Now your chickens are laying eggs!\nCollect 5 eggs to complete your training.",
-      "egg",
+      "eggs",
       { persist: true }
     );
 
@@ -43,7 +43,7 @@ export class Step6 extends TutorialStep {
       } else {
         ui.showHint(
           `You collected ${collected}/${this.requiredEggs} eggs\nKeep going!`,
-          "egg"
+          "eggs"
         );
         requestAnimationFrame(check);
       }
