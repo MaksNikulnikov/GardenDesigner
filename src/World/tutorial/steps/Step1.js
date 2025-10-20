@@ -8,7 +8,7 @@ export class Step1 extends TutorialStep {
     ui.enableButton("sub-garden");
 
     ui.highlightButton("btn-build");
-    ui.showHint("Let's start by building your first garden 🏡", "build");
+    ui.showHint("Let's start by building!", "build");
 
     ui.onMenuOpened?.("build", () => this._onBuildMenuOpened());
   }

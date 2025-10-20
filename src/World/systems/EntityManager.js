@@ -9,7 +9,7 @@ export class EntityManager {
   constructor(scene, addUpdatable, camera) {
     this.scene = scene;
     this.addUpdatable = addUpdatable;
-    this.camera = camera; // <— передаём из GameManager
+    this.camera = camera;
     this.entities = [];
     this.isHarvestAllowed = false;
   }
