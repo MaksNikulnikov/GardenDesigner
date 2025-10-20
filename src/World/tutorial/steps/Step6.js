@@ -3,6 +3,7 @@ import { TutorialStep } from "../TutorialStep.js";
 export class Step6 extends TutorialStep {
   constructor(manager) {
     super(manager);
+    this.requiredEggs = 5;
   }
 
   start() {
@@ -15,7 +16,6 @@ export class Step6 extends TutorialStep {
     ui.enableButton("btn-build");
     ui.enableButton("btn-plants");
     ui.enableButton("btn-animals");
-
     ui.enableButton("sub-garden");
     ui.enableButton("sub-pen");
     ui.enableButton("sub-corn");
@@ -23,58 +23,58 @@ export class Step6 extends TutorialStep {
     ui.enableButton("sub-chicken");
 
     ui.showHint(
-      "You’ve mastered the basics of farming! 🌾\nNow you’re ready to run your own farm.\nGrow crops and raise animals to earn money at the fair!",
-      "farm"
+      "Now your chickens are laying eggs!\nCollect 5 eggs to complete your training.",
+      "egg",
+      { persist: true }
     );
-    this._startFreePlayCountdown();
+
+    this._trackEggCollection();
   }
 
-  _startFreePlayCountdown() {
+  _trackEggCollection() {
     const ui = this.manager.ui;
     const game = this.manager.game;
 
-    let timeLeft = 10;
-    const tick = () => {
-      timeLeft -= 1;
-      if (timeLeft <= 0) {
-        this._onFreePlayEnd();
+    const check = () => {
+      const collected = game.state.eggs ?? 0;
+
+      if (collected >= this.requiredEggs) {
+        this._onEggGoalReached();
       } else {
         ui.showHint(
-          `Enjoy your free play mode! 🕒\n${timeLeft} seconds remaining...`,
-          "farm"
+          `You collected ${collected}/${this.requiredEggs} eggs\nKeep going!`,
+          "egg"
         );
-        setTimeout(tick, 1000);
+        requestAnimationFrame(check);
       }
     };
 
-    setTimeout(tick, 1000);
+    requestAnimationFrame(check);
   }
 
-  _onFreePlayEnd() {
+  _onEggGoalReached() {
     const ui = this.manager.ui;
     const game = this.manager.game;
 
-    if (game.stop) game.stop();
-    if (game.timeScale !== undefined) game.timeScale = 0;
-
-    ui.removeHighlights();
-    ui.hideAllSubButtons?.();
-
     ui.showHint(
-      "Great work, farmer! 🌻\nDownload the full version to continue your journey!",
-      "farm"
+      "Amazing! You collected enough eggs!\nYou're now a true farmer!",
+      "farm",
+      { persist: true }
     );
 
     setTimeout(() => {
       ui.showCTA("Download GardenMakeover");
-    }, 200);
+    }, 2000);
+
+    if (game.stop) game.stop();
+    if (game.timeScale !== undefined) game.timeScale = 0;
 
     this.isComplete = true;
   }
 
   complete() {
     const ui = this.manager.ui;
-    ui.disableAllButtons();
     ui.hideHint();
+    ui.disableAllButtons();
   }
 }

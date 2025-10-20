@@ -186,16 +186,22 @@ export class GameUI {
     document.body.appendChild(this.$cta);
   }
 
-  showHint(text, icon = null) {
+  showHint(text, icon = null, { persist = false, duration = 2000 } = {}) {
     if (!this.$hint) return;
     this.$hint.innerHTML = icon
-      ? `<img src="/assets/images/${icon}.png" alt=""><span>${text}</span>`
+      ? `<img src="/assets/images/${icon}.png" alt="" /> <span>${text}</span>`
       : text;
     this.$hint.classList.remove("hidden");
+    if (!persist) {
+      clearTimeout(this._hintTimer);
+      this._hintTimer = setTimeout(() => this.hideHint(), duration);
+    }
   }
 
   hideHint() {
-    this.$hint?.classList.add("hidden");
+    if (!this.$hint) return;
+    clearTimeout(this._hintTimer);
+    this.$hint.classList.add("hidden");
   }
 
   // ============================================================
@@ -246,32 +252,31 @@ export class GameUI {
     icon.alt = isDay ? "Day" : "Night";
   }
 
-createAnimalCounter(id, icon = "egg") {
-  const el = document.createElement("div");
-  el.className = "animal-counter";
-  el.innerHTML = `
+  createAnimalCounter(id, icon = "egg") {
+    const el = document.createElement("div");
+    el.className = "animal-counter";
+    el.innerHTML = `
     <img src="/assets/images/${icon}.png" alt="" />
     <span>0</span>`;
-  document.body.appendChild(el);
-  this._animalCounters ??= {};
-  this._animalCounters[id] = el;
-}
-
-updateAnimalCounter(id, value, screenX, screenY) {
-  if (!this._animalCounters?.[id]) return;
-
-  const el = this._animalCounters[id];
-  el.style.left = `${screenX}px`;
-  el.style.top = `${screenY}px`;
-  el.querySelector("span").textContent = value;
-}
-
-removeAnimalCounter(id) {
-  const el = this._animalCounters?.[id];
-  if (el) {
-    el.remove();
-    delete this._animalCounters[id];
+    document.body.appendChild(el);
+    this._animalCounters ??= {};
+    this._animalCounters[id] = el;
   }
-}
 
+  updateAnimalCounter(id, value, screenX, screenY) {
+    if (!this._animalCounters?.[id]) return;
+
+    const el = this._animalCounters[id];
+    el.style.left = `${screenX}px`;
+    el.style.top = `${screenY}px`;
+    el.querySelector("span").textContent = value;
+  }
+
+  removeAnimalCounter(id) {
+    const el = this._animalCounters?.[id];
+    if (el) {
+      el.remove();
+      delete this._animalCounters[id];
+    }
+  }
 }

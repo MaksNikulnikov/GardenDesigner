@@ -5,7 +5,6 @@ import { Step4 } from "./steps/Step4";
 import { Step5 } from "./steps/Step5";
 import { Step6 } from "./steps/Step6";
 
-
 export class TutorialManager {
   constructor(ui, game) {
     this.ui = ui;
@@ -13,6 +12,7 @@ export class TutorialManager {
     this.steps = [];
     this.currentStepIndex = 0;
     this.activeStep = null;
+    this.running = false;
 
     this._initSteps();
   }
@@ -30,28 +30,38 @@ export class TutorialManager {
 
   start() {
     this.currentStepIndex = 0;
+    this.running = true;
     this._runCurrentStep();
+  }
+
+  stop() {
+    this.running = false;
   }
 
   _runCurrentStep() {
     this.activeStep = this.steps[this.currentStepIndex];
-    if (!this.activeStep) return;
+    if (!this.activeStep) {
+      this.running = false;
+      return;
+    }
 
     this.activeStep.start();
+  }
 
-    const loop = () => {
-      if (!this.activeStep) return;
-      this.activeStep.update?.();
+  tick(delta) {
+    if (!this.running || !this.activeStep) return;
 
-      if (this.activeStep.isComplete) {
-        this.activeStep.complete?.();
-        this.currentStepIndex++;
+    this.activeStep.update?.(delta);
+
+    if (this.activeStep.isComplete) {
+      this.activeStep.complete?.();
+      this.currentStepIndex++;
+
+      if (this.currentStepIndex < this.steps.length) {
         this._runCurrentStep();
       } else {
-        requestAnimationFrame(loop);
+        this.running = false;
       }
-    };
-
-    requestAnimationFrame(loop);
+    }
   }
 }

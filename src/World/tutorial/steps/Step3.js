@@ -2,41 +2,53 @@ import { TutorialStep } from "../TutorialStep.js";
 
 export class Step3 extends TutorialStep {
   start() {
-    const game = this.manager.game;
     const ui = this.manager.ui;
 
+    console.log("🎓 Step3 started — waiting for corn to grow");
     ui.showHint("Your corn is growing... just wait a bit!", "corn");
 
-    this._waitForAllCornReady(() => this._onCornReady());
+    this._phase = "waitGrow"; // waitGrow → harvest → done
+    this._timer = 0;
+    this._harvestMessageShown = false;
   }
 
-  _waitForAllCornReady(callback) {
-    const check = () => {
-      if (this.manager.game.entities.areAllCropsReady?.("corn")) callback?.();
-      else requestAnimationFrame(check);
-    };
-    requestAnimationFrame(check);
-  }
-
-  _onCornReady() {
-    const ui = this.manager.ui;
+  update(delta) {
     const game = this.manager.game;
+    const ui = this.manager.ui;
+    this._timer += delta;
+    if (this._phase === "waitGrow") {
+      const ready = game.entities.areAllCropsReady?.("corn");
+      if (ready) {
+        ui.showHint(
+          "Your corn is ready to harvest! Tap it to collect!",
+          "corn"
+        );
+        game.entities.allowHarvest?.();
+        this._phase = "harvest";
+      }
+      return;
+    }
 
-    ui.showHint("Your corn is ready to harvest! 🌾 Tap it to collect!", "corn");
-    game.entities.allowHarvest?.();
+    if (this._phase === "harvest") {
+      const anyCornLeft = game.entities.entities.some((e) => e.type === "corn");
+      if (!anyCornLeft && !this._harvestMessageShown) {
+        this._harvestMessageShown = true;
+        ui.showHint("Great job! You harvested your first corn! 🎉", "corn");
+        this._phase = "done";
+        this._timer = 0;
+      }
+      return;
+    }
 
-    this._waitForHarvest(() => {
-      ui.showHint("Great job! You harvested your first corn! 🎉", "corn");
-      setTimeout(() => (this.isComplete = true), 2000);
-    });
+    if (this._phase === "done") {
+      if (this._timer > 2) {
+        this.isComplete = true;
+      }
+    }
   }
 
-  _waitForHarvest(callback) {
-    const check = () => {
-      const anyCornLeft = this.manager.game.entities.entities.some((e) => e.type === "corn");
-      if (!anyCornLeft) callback?.();
-      else requestAnimationFrame(check);
-    };
-    requestAnimationFrame(check);
+  complete() {
+    const ui = this.manager.ui;
+    ui.hideHint();
   }
 }

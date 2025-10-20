@@ -31,7 +31,11 @@ export class GameManager {
     this.structures = new StructureManager(scene, (fx) =>
       this.addUpdatable(fx)
     );
-    this.entities = new EntityManager(scene, (obj) => this.addUpdatable(obj), this.camera);
+    this.entities = new EntityManager(
+      scene,
+      (obj) => this.addUpdatable(obj),
+      this.camera
+    );
 
     // --- Create placeholders ---
     for (const field of this.field.fields) {
@@ -59,6 +63,7 @@ export class GameManager {
       });
       this.ui.updateCoins(this.state.coins);
       this.tutorial.start();
+      this.addUpdatable(this.tutorial);
     });
   }
 
@@ -96,9 +101,6 @@ export class GameManager {
   // ========================
   _startBuildMode(type) {
     this.state.buildMode = type;
-    this.ui.showHint("Tap an empty area to place it");
-
-    console.log(`🏗️ Build mode started: ${type}`);
   }
 
   // ========================

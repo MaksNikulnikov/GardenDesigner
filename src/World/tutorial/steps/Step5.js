@@ -8,7 +8,6 @@ export class Step5 extends TutorialStep {
 
   start() {
     const ui = this.manager.ui;
-    const game = this.manager.game;
 
     ui.disableAllButtons?.();
     ui.enableButton("btn-animals");
@@ -22,51 +21,65 @@ export class Step5 extends TutorialStep {
 
     ui.onMenuOpened?.("animals", () => this._onAnimalsMenuOpened());
 
-    this._trackChickenPlacement(this.requiredCount, () => this._onAllChickensPlaced());
+    this._phase = "place";
+    this._timer = 0;
+    this._lastCount = 0;
   }
 
   _onAnimalsMenuOpened() {
     const ui = this.manager.ui;
     ui.removeHighlights();
     ui.highlightButton("sub-chicken");
-    ui.showHint("Choose Chicken and place 5 in your pen 🐔🐔🐔🐔🐔", "chicken");
+    ui.showHint("Choose Chicken and place 5 in your pen", "chicken");
   }
 
-  _trackChickenPlacement(requiredCount, callback) {
+  update(delta) {
     const game = this.manager.game;
     const ui = this.manager.ui;
+    this._timer += delta;
 
-    const check = () => {
+    if (this._phase === "place") {
       const chickens = game.entities.entities.filter((e) => e.type === "chicken").length;
 
-      if (chickens < requiredCount) {
-        const remaining = requiredCount - chickens;
-        ui.showHint(
-          `Good job! You placed ${chickens}/${requiredCount} chickens.\n${remaining} more to go!`,
-          "chicken"
-        );
-        requestAnimationFrame(check);
-      } else {
-        callback?.();
-      }
-    };
+      if (chickens !== this._lastCount && this._timer > 0.5) {
+        this._timer = 0;
+        this._lastCount = chickens;
 
-    requestAnimationFrame(check);
+        const remaining = this.requiredCount - chickens;
+        if (remaining > 0) {
+          ui.showHint(
+            `Good job! You placed ${chickens}/${this.requiredCount} chickens.\n${remaining} more to go!`,
+            "chicken"
+          );
+        } else {
+          this._onAllChickensPlaced();
+        }
+      }
+    }
+
+    if (this._phase === "done" && this._timer > 2.5) {
+      this.isComplete = true;
+    }
   }
 
   _onAllChickensPlaced() {
     const ui = this.manager.ui;
-    this.manager.game.clearSelectedItem()
+    const game = this.manager.game;
+
+    game.clearSelectedItem?.();
+
+    this._phase = "done";
+    this._timer = 0;
+
     ui.removeHighlights();
     ui.hideAllSubButtons?.();
     ui.disableAllButtons();
 
-    ui.showHint("Fantastic! You now have a whole flock! 🐔🐔🐔🐔🐔", "chicken");
+    ui.showHint("Fantastic! You now have a whole flock!", "chicken");
 
     setTimeout(() => {
-      ui.showHint("Your farm is growing fast! 🌾✨", "animals");
-      this.isComplete = true;
-    }, 2500);
+      ui.showHint("Your farm is growing fast!", "animals");
+    }, 1500);
   }
 
   complete() {
