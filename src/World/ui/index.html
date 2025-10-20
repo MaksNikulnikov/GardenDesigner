@@ -1,22 +1,25 @@
 <div id="game-ui">
   <div class="top-bar">
-    <div id="coins" class="coins">
+    <div id="coins" class="coins ui-bubble">
       <img src="/assets/images/money.png" alt="money" class="icon" />
       <span id="coin-amount">0</span>
     </div>
 
-    <div id="day-night" class="day-night">
-      <img id="day-night-icon" src="/assets/images/sun.png" alt="Day" />
-      <span id="clock">8:00 a.m.</span>
-      <button id="toggle-day-night" class="btn small-btn">Day/Night</button>
+    <div id="day-night" class="day-night ui-bubble">
+      <div class="time-row">
+        <img id="day-night-icon" src="/assets/images/sun.png" alt="Day" />
+        <span id="clock">8 a.m.</span>
+      </div>
+
+      <div id="toggle-switch" class="toggle-switch"></div>
     </div>
 
     <div id="resources" class="resources">
-      <div class="res-item">
+      <div class="res-item ui-bubble">
         <img src="/assets/images/corn.png" alt="corn" />
         <span id="res-corn">0</span>
       </div>
-      <div class="res-item">
+      <div class="res-item ui-bubble">
         <img src="/assets/images/eggs.png" alt="egg" />
         <span id="res-eggs">0</span>
       </div>
@@ -90,8 +93,6 @@
     </button>
   </div>
 
-    <!-- 📲 CTA -->
-  <button id="cta-button" class="cta-button hidden">
-    Download Now
-  </button>
+  <!-- 📲 CTA -->
+  <button id="cta-button" class="cta-button hidden">Download Now</button>
 </div>

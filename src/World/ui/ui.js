@@ -233,14 +233,19 @@ export class GameUI {
   }
 
   onDayNightToggle(callback) {
-    const btn = document.getElementById("toggle-day-night");
-    if (!btn) return;
-    btn.addEventListener("click", () => callback?.());
+    const toggle = document.getElementById("toggle-switch");
+    if (!toggle) return;
+
+    toggle.addEventListener("click", () => {
+      toggle.classList.toggle("night");
+      callback?.();
+    });
   }
 
   updateClock(timeStr) {
     const el = document.getElementById("clock");
-    if (el) el.textContent = timeStr;
+    const simplified = timeStr.replace(/:\d{2}/, "");
+    if (el) el.textContent = simplified;
   }
 
   updateDayNight(isDay) {
