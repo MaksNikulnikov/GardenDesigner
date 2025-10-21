@@ -108,6 +108,7 @@ export function createSmokeEffect(
   const outer = makeLayer(textureAlpha, SMOKE_OUTER_OPACITY, 1.5);
 
   // === Animation logic per frame ===
+  // @ts-ignore
   group.tick = () => {
     const t = performance.now() * 0.001 * SMOKE_SPEED;
 

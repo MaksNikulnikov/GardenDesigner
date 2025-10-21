@@ -7,7 +7,7 @@ import { createRenderer } from './systems/renderer.js';
 import { Resizer } from './systems/Resizer.js';
 import { Loop } from './systems/Loop.js';
 import { createGround } from './components/ground/ground.js';
-import { GameManager } from './systems/GameManager.js';
+import { GameManager } from './game/GameManager.js';
 
 let camera;
 let renderer;

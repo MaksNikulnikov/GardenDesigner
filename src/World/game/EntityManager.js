@@ -3,7 +3,7 @@ import { gsap } from "gsap";
 
 import { GAME_CONFIG } from "../config/gameConfig.js";
 import { createSmokeEffect } from "../effects/createSmokeEffect.js";
-import { FACTORIES } from "./factories.js";
+import { FACTORIES } from "../components/gameObjects/factories.js";
 
 export class EntityManager {
   constructor(scene, addUpdatable, camera) {
