@@ -3,6 +3,7 @@ import { GAME_CONFIG } from "../../config/gameConfig.js";
 
 export class PlantEntity {
   constructor(scene, cell, type, factory, state, ui) {
+    this.id = Math.random().toString(36).slice(2);
     this.scene = scene;
     this.cell = cell;
     this.type = type;
@@ -19,6 +20,7 @@ export class PlantEntity {
     cell.content = obj;
 
     this.obj = obj;
+    this.obj.userData.entityId = this.id;
     this.kind = "plant";
     this.stage = 1;
     this.timer = 0;

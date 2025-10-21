@@ -106,67 +106,64 @@ export class GameManager {
   // ========================
   // 🖱️ Click handling
   // ========================
- _setupSceneClick() {
-  const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  _setupSceneClick() {
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-  this.renderer.domElement.addEventListener("pointerdown", (event) => {
-    const rect = this.renderer.domElement.getBoundingClientRect();
-    this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    this.renderer.domElement.addEventListener("pointerdown", (event) => {
+      const rect = this.renderer.domElement.getBoundingClientRect();
+      this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    this.raycaster.setFromCamera(this.pointer, this.camera);
+      this.raycaster.setFromCamera(this.pointer, this.camera);
 
-    // 🟢 click on any entity (plants / animals)
-    const allMeshes = [];
-    for (const e of this.entities.entities) {
-      e.obj.traverse((child) => {
-        if (child.isMesh) allMeshes.push(child);
-      });
-    }
-
-    const hits = this.raycaster.intersectObjects(allMeshes, true);
-    if (hits.length > 0) {
-      let hit = hits[0].object;
-      let foundId = null;
-
-      while (hit && !foundId) {
-        if (hit.userData?.entityId) foundId = hit.userData.entityId;
-        hit = hit.parent;
+      // 🟢 click on any entity (plants / animals)
+      const allMeshes = [];
+      for (const e of this.entities.entities) {
+        e.obj.traverse((child) => {
+          if (child.isMesh) allMeshes.push(child);
+        });
       }
 
-      if (foundId) {
-        const entity = this.entities.entities.find((e) => e.id === foundId);
-        if (entity) {
-          this.entities.harvest(entity, this.state, this.ui);
-          return;
+      const hits = this.raycaster.intersectObjects(allMeshes, true);
+      if (hits.length > 0) {
+        let hit = hits[0].object;
+        let foundId = null;
+
+        while (hit && !foundId) {
+          if (hit.userData?.entityId) foundId = hit.userData.entityId;
+          hit = hit.parent;
+        }
+
+        if (foundId) {
+          const entity = this.entities.entities.find((e) => e.id === foundId);
+          if (entity) {
+            this.entities.harvest(entity, this.state, this.ui);
+            return;
+          }
         }
       }
-    }
 
-    // 🟡 fallback: click on field
-    const point = new THREE.Vector3();
-    this.raycaster.ray.intersectPlane(plane, point);
-    if (!point) return;
-    this._handleClick(point);
-  });
+      // 🟡 fallback: click on field
+      const point = new THREE.Vector3();
+      this.raycaster.ray.intersectPlane(plane, point);
+      if (!point) return;
+      this._handleClick(point);
+    });
 
-  // 🟣 click on UI counters
-  document.addEventListener("click", (e) => {
-    const target = e.target;
-    if (!target) return;
-    // @ts-ignore
-    const el = target.closest("[data-animal-id]");
-    if (!el) return;
-    const id = el.dataset.animalId;
-    const entity = this.entities.entities.find((e) => e.id === id);
-    if (entity) {
-      this.entities.harvest(entity, this.state, this.ui);
-    }
-  });
-}
-
-
-
+    // 🟣 click on UI counters
+    document.addEventListener("click", (e) => {
+      const target = e.target;
+      if (!target) return;
+      // @ts-ignore
+      const el = target.closest("[data-animal-id]");
+      if (!el) return;
+      const id = el.dataset.animalId;
+      const entity = this.entities.entities.find((e) => e.id === id);
+      if (entity) {
+        this.entities.harvest(entity, this.state, this.ui);
+      }
+    });
+  }
 
   _handleClick(point) {
     // 1️⃣ Check if a cell was clicked
@@ -234,8 +231,7 @@ export class GameManager {
   _handleCellClick(cell) {
     const item = this.entities.getEntityByCell(cell);
 
-    // Empty cell and selected item → plant/spawn
-    if (!cell.content && this.state.selectedItem) {
+    if (!cell.content && this.state.selectedItem && cell.type === "plants") {
       this.entities.plantOrSpawn(
         cell,
         this.state.selectedItem,
@@ -243,6 +239,31 @@ export class GameManager {
         this.ui
       );
       return;
+    }
+
+    if (this.state.selectedItem && cell.type === "animals") {
+      if (!cell.content) {
+        this.entities.plantOrSpawn(
+          cell,
+          this.state.selectedItem,
+          this.state,
+          this.ui
+        );
+        return;
+      } else {
+        const emptyCellOnTheSameField = cell.field.structure.cells.find(
+          (cell) => !cell.content
+        );
+        if (emptyCellOnTheSameField) {
+          this.entities.plantOrSpawn(
+            emptyCellOnTheSameField,
+            this.state.selectedItem,
+            this.state,
+            this.ui
+          );
+          return;
+        }
+      }
     }
 
     // Harvest ready crops

@@ -75,12 +75,12 @@ export class StructureManager {
 
     // Create grid of cells
     const cellLayout = GAME_CONFIG.STRUCTURES[type].cellLayout;
-    const cells = this._createCells(origin, rotationY, cellType, cellLayout);
+    const cells = this._createCells(origin, rotationY, cellType, cellLayout, field);
 
     return { type, group, cells, origin };
   }
 
-  _createCells(origin, rotationY, cellType, layout) {
+  _createCells(origin, rotationY, cellType, layout, field) {
     const cells = [];
     const cellSizeX = layout.cellSizeX ?? 1;
     const cellSizeZ = layout.cellSizeZ ?? 1;
@@ -106,6 +106,7 @@ export class StructureManager {
           type: cellType,
           position: rotated,
           content: null,
+          field
         });
       }
     }
