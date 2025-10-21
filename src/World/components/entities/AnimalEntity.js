@@ -57,6 +57,7 @@ export class AnimalEntity {
     cell.content = obj;
 
     this.obj = obj;
+    this.obj.userData.entityId = this.id;
     this.kind = "animal";
     this.stored = 0;
     this.producing = true;

@@ -260,6 +260,7 @@ export class GameUI {
   createAnimalCounter(id) {
     const el = document.createElement("div");
     el.className = "animal-counter";
+    el.dataset.animalId = id;
     el.innerHTML = "<span>0</span>";
     document.body.appendChild(el);
     this._animalCounters ??= {};
