@@ -1,13 +1,12 @@
 import { createCamera } from './components/camera.js';
-import { createLights } from './components/lights.js';
 import { createScene } from './components/scene.js';
-
 import { createControls } from './systems/controls.js';
 import { createRenderer } from './systems/renderer.js';
 import { Resizer } from './systems/Resizer.js';
 import { Loop } from './systems/Loop.js';
 import { createGround } from './components/ground/ground.js';
 import { GameManager } from './game/GameManager.js';
+import { cameraHelper } from './helpers/CameraHelper.js';
 
 let camera;
 let renderer;
@@ -21,8 +20,9 @@ class World {
     scene = createScene();
     loop = new Loop(camera, scene, renderer);
     new Resizer(container, camera, renderer);
+    cameraHelper.setCamera(camera);
     container.append(renderer.domElement);
-    
+
     const controls = createControls(camera, renderer.domElement);
 
     const ground = createGround();
