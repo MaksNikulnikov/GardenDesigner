@@ -1,6 +1,32 @@
 export const GAME_CONFIG = {
   INITIAL_COINS: 50,
+
+  // ===== LIGHTING SETTINGS =====
+  LIGHT: {
+    AMBIENT_COLOR: 0xfff6df,
+    AMBIENT_INTENSITY: 1.4,
+
+    HEMI_SKY_COLOR: 0xbcd3ff,
+    HEMI_GROUND_COLOR: 0xffe8b2,
+    HEMI_INTENSITY: 1.2,
+
+    SUN_COLOR_DAY: 0xffffff,
+    SUN_COLOR_NIGHT: 0xb38aff,
+    SUN_INTENSITY: 1.5,
+    SUN_POSITION: { x: 6, y: 8, z: 6 },
+  },
   DAY_DURATION: 240,
+
+  // ===== DAY/NIGHT CYCLE SETTINGS =====
+  DAY_NIGHT: {
+    SUNSET_START: 20, // 8 p.m.
+    SUNSET_END: 21, // 9 p.m.
+    SUNRISE_START: 7, // 7 a.m.
+    SUNRISE_END: 8, // 8 a.m.
+
+    SKY_DAY: 0x87ceff, // light blue
+    SKY_NIGHT: 0x1b003d, // violet-blue
+  },
   OFFSET_Y: {
     PLACEHOLDER: 0.25,
     PEN: 0.5,

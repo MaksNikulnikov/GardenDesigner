@@ -20,17 +20,19 @@ class World {
     renderer = createRenderer();
     scene = createScene();
     loop = new Loop(camera, scene, renderer);
+    new Resizer(container, camera, renderer);
     container.append(renderer.domElement);
-
+    
     const controls = createControls(camera, renderer.domElement);
-    const { ambientLight, mainLight } = createLights();
+
     const ground = createGround();
+    scene.add(ground);
+    
     const game = new GameManager(scene, camera, renderer);
-
     loop.updatables.push(controls, game);
-    scene.add(ambientLight, mainLight, ground);
 
-    const resizer = new Resizer(container, camera, renderer);
+
+
 
   }
 
