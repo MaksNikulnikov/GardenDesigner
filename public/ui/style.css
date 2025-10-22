@@ -102,7 +102,7 @@
     #f5f5f5 60%,
     #ddd 100%
   );
-  background-image: url("/assets/images/sun.png");
+  background-image: url("assets/images/sun.png");
   background-size: 16px 16px;
   background-repeat: no-repeat;
   background-position: center;
@@ -115,7 +115,7 @@
 }
 .toggle-switch.night::before {
   left: calc(100% - 27px);
-  background-image: url("/assets/images/moon.png");
+  background-image: url("assets/images/moon.png");
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), 0 0 6px rgba(150, 200, 255, 0.6);
 }
 

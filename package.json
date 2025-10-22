@@ -1,7 +1,7 @@
 {
   "name": "my-playable",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.1",
   "type": "module",
   "description": "Garden Designer — a 3D casual farm prototype built with Three.js and GSAP.",
   "author": "Maksim N.",
