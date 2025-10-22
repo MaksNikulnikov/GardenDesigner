@@ -1,3 +1,4 @@
+import { SoundManager, SOUND_KEYS } from "../audio/SoundManager.js";
 import { AnimalEntity } from "../components/entities/AnimalEntity.js";
 import { PlantEntity } from "../components/entities/PlantEntity.js";
 import { FACTORIES } from "../components/gameObjects/factories.js";
@@ -15,7 +16,6 @@ export class EntityManager {
   getEntityByCell(cell) {
     return this.entities.find((e) => e.cell === cell);
   }
-  
 
   plantOrSpawn(cell, type, state, ui) {
     const config = GAME_CONFIG.ITEMS[type];
@@ -30,6 +30,7 @@ export class EntityManager {
         state,
         ui
       );
+      SoundManager.instance.playSfx(SOUND_KEYS.PLACE);
       this.entities.push(entity);
     } else if (config.category === "animals" && cell.type === "animals") {
       const entity = new AnimalEntity(
@@ -41,6 +42,7 @@ export class EntityManager {
         ui,
         state
       );
+      SoundManager.instance.playSfx(SOUND_KEYS.PLACE_CHICKEN);
       this.entities.push(entity);
     } else {
       ui.showHint("You can't place anything here.");
@@ -64,6 +66,7 @@ export class EntityManager {
     if (!this.isHarvestAllowed || !entity) return;
 
     entity.harvest(state, ui);
+    SoundManager.instance.playSfx(SOUND_KEYS.HARVEST);
     if (entity.kind === "plant" && entity.harvested) {
       this.entities = this.entities.filter((e) => e !== entity);
     }

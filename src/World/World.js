@@ -30,10 +30,6 @@ class World {
     
     const game = new GameManager(scene, camera, renderer);
     loop.updatables.push(controls, game);
-
-
-
-
   }
 
   render() {

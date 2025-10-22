@@ -6,6 +6,7 @@ import { StructureManager } from "./StructureManager.js";
 import { EntityManager } from "./EntityManager.js";
 import { DayNightManager } from "./DayNightManager.js";
 import { TutorialManager } from "../tutorial/TutorialManager.js";
+import { SOUND_KEYS, SoundManager } from "../audio/SoundManager.js";
 
 export class GameManager {
   constructor(scene, camera, renderer) {
@@ -57,6 +58,10 @@ export class GameManager {
     this.tutorial = new TutorialManager(this.ui, this);
 
     this.dayNight = new DayNightManager(scene, this.ui);
+
+    // --- Audio ---
+    this._initAudio();
+
     this.ui.ready.then(() => {
       this.ui.onDayNightToggle(() => {
         this.dayNight.toggleDayNight();
@@ -65,6 +70,28 @@ export class GameManager {
       this.tutorial.start();
       this.addUpdatable(this.tutorial);
     });
+  }
+
+  // ========================
+  // 🔊 Audio
+  // ========================
+  _initAudio() {
+    const sound = SoundManager.instance;
+
+    // ждём первый клик
+    document.addEventListener(
+      "pointerdown",
+      async () => {
+        try {
+          sound._unlockAudio();
+          await sound.loadAll();
+          sound.playMusic(true);
+        } catch (err) {
+          console.warn("[GameManager] Failed to initialize audio", err);
+        }
+      },
+      { once: true }
+    );
   }
 
   // ========================
@@ -161,6 +188,7 @@ export class GameManager {
       const entity = this.entities.entities.find((e) => e.id === id);
       if (entity) {
         this.entities.harvest(entity, this.state, this.ui);
+        SoundManager.instance.playSfx(SOUND_KEYS.HARVEST);
       }
     });
   }

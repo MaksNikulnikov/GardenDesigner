@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 import { GAME_CONFIG } from "../config/gameConfig.js";
 import { createSmokeEffect } from "../effects/createSmokeEffect.js";
 import * as THREE from "three";
+import { SoundManager, SOUND_KEYS } from "../audio/SoundManager.js";
 
 export class StructureManager {
   constructor(scene, onEffectCreated) {
@@ -55,7 +56,7 @@ export class StructureManager {
     group.scale.set(0.001, 0.001, 0.001);
     group.visible = false;
     this.scene.add(group);
-
+    SoundManager.instance.playSfx(SOUND_KEYS.BUILD);
     // Animate appearance
     gsap.delayedCall(buildTime, () => {
       group.visible = true;
@@ -68,7 +69,9 @@ export class StructureManager {
           z: 1.05,
           duration: 0.6,
           ease: "back.out(2)",
-          onComplete: () => group.scale.set(1, 1, 1),
+          onComplete: () => {
+            group.scale.set(1, 1, 1)
+          },
         }
       );
     });
