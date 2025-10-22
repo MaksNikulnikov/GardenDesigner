@@ -3,7 +3,7 @@ import { gsap } from "gsap";
 import { createSmokeEffect } from "../../effects/createSmokeEffect.js";
 import { GAME_CONFIG } from "../../config/gameConfig.js";
 import { cameraHelper } from "../../helpers/CameraHelper.js";
-
+import { SoundManager, SOUND_KEYS } from "../../audio/SoundManager.js";
 
 export class AnimalEntity {
   constructor(scene, cell, type, factory, addUpdatable, ui, state) {
@@ -91,7 +91,8 @@ export class AnimalEntity {
           ui[feedUpdate]?.(state[feedType]);
 
           this.stored++;
-          if (this.stored >= (this.config.maxStorage ?? 3)) this.producing = false;
+          if (this.stored >= (this.config.maxStorage ?? 3))
+            this.producing = false;
         } else {
           this.producing = false;
         }
@@ -105,6 +106,7 @@ export class AnimalEntity {
 
   harvest(state, ui) {
     if (!this.stored || this.stored <= 0) return;
+    SoundManager.instance.playSfx(SOUND_KEYS.HARVEST);
 
     const reward = this.config.reward;
     if (reward && typeof reward === "object" && reward.type) {

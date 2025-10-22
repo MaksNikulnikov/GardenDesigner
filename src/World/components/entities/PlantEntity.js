@@ -1,5 +1,5 @@
-import * as THREE from "three";
 import { GAME_CONFIG } from "../../config/gameConfig.js";
+import { SoundManager, SOUND_KEYS } from "../../audio/SoundManager.js";
 
 export class PlantEntity {
   constructor(scene, cell, type, factory, state, ui) {
@@ -52,6 +52,8 @@ export class PlantEntity {
   }
 
   harvest(state, ui) {
+    if (!this.readyToHarvest) return;
+    SoundManager.instance.playSfx(SOUND_KEYS.HARVEST);
     const reward = this.config.reward;
 
     if (reward && typeof reward === "object" && reward.type) {

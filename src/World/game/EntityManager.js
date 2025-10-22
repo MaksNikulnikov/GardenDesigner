@@ -66,7 +66,6 @@ export class EntityManager {
     if (!this.isHarvestAllowed || !entity) return;
 
     entity.harvest(state, ui);
-    SoundManager.instance.playSfx(SOUND_KEYS.HARVEST);
     if (entity.kind === "plant" && entity.harvested) {
       this.entities = this.entities.filter((e) => e !== entity);
     }
