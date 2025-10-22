@@ -37,7 +37,6 @@ export class GameUI {
     const html = await res.text();
     document.body.insertAdjacentHTML("beforeend", html);
     this._initElements();
-    this._createHintElements();
   }
 
   /** Initialize references and button handlers. */
@@ -78,6 +77,8 @@ export class GameUI {
     ["sub-chicken", "sub-sheep", "sub-cow"].forEach((id) => {
       this.$subs[id].onclick = () => this.onItemSelect(id.replace("sub-", ""));
     });
+
+    this.$hint = document.querySelector("#hint-box");
 
     // Enable click sounds across all UI buttons
     this._setupClickSounds();
@@ -200,18 +201,6 @@ export class GameUI {
   // ============================================================
   // 💬 Hints
   // ============================================================
-  _createHintElements() {
-    this.$hint = document.createElement("div");
-    this.$hint.id = "hint-box";
-    this.$hint.className = "hint-box hidden";
-    document.body.appendChild(this.$hint);
-
-    this.$cta = document.createElement("button");
-    this.$cta.id = "cta-button";
-    this.$cta.className = "cta-button hidden";
-    this.$cta.textContent = "Download Now";
-    document.body.appendChild(this.$cta);
-  }
 
   showHint(
     text,
@@ -219,11 +208,26 @@ export class GameUI {
     { persist = false, duration = UI_CONFIG.HINT_DURATION } = {}
   ) {
     if (!this.$hint) return;
-    this.$hint.innerHTML = icon
-      ? `<img src="assets/images/${icon}.png" alt="" /> <span>${text}</span>`
-      : text;
+    if (!this.$hintIcon || !this.$hintText) {
+      this.$hintIcon = this.$hint.querySelector("#hint-icon");
+      this.$hintText = this.$hint.querySelector("#hint-text");
+    }
+    this.$hintText.textContent = text ?? "";
+
+    if (icon) {
+      // @ts-ignore
+      this.$hintIcon.src = `assets/images/${icon}.png`;
+      // @ts-ignore
+      this.$hintIcon.alt = icon;
+      this.$hintIcon.classList.remove("hidden");
+    } else {
+      this.$hintIcon.classList.add("hidden");
+    }
+
+    // Show hint box
     this.$hint.classList.remove("hidden");
 
+    // Auto-hide timer
     if (!persist) {
       clearTimeout(this._hintTimer);
       this._hintTimer = setTimeout(() => this.hideHint(), duration);

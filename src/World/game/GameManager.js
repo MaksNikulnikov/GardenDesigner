@@ -115,12 +115,10 @@ export class GameManager {
   _onCategorySelect(category) {
     this.state.selectedCategory = category;
     this.state.selectedItem = null;
-    console.log(`[UI] Selected category: ${category}`);
   }
 
   _onItemSelect(item) {
     this.state.selectedItem = item;
-    console.log(`[UI] Selected item: ${item}`);
   }
 
   // ========================
@@ -237,8 +235,6 @@ export class GameManager {
 
     this.state.coins -= GAME_CONFIG.STRUCTURES[mode].cost;
     this.ui.updateCoins(this.state.coins);
-
-    console.log(`🏗️ Building structure: ${mode} on field ${field.id}`);
 
     if (mode === "garden") {
       field.structure = this.structures.createGarden(field);
