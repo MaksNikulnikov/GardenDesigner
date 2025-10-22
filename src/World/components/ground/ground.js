@@ -6,7 +6,7 @@ function createGround() {
   const loader = new GLTFLoader();
 
   loader.load(
-    '/assets/models/ground.glb',
+    'assets/models/ground.glb',
     (gltf) => {
       group.add(gltf.scene);
     },

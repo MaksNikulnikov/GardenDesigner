@@ -1,11 +1,11 @@
 // All audio asset paths
 const AUDIO_PATHS = {
-  MUSIC_MAIN: "/assets/audio/theme.mp3",
-  SFX_CLICK: "/assets/audio/click.mp3",
-  SFX_HARVEST: "/assets/audio/harvest.mp3",
-  SFX_BUILD: "/assets/audio/place.mp3",
-  SFX_PLACE: "/assets/audio/place.mp3",
-  SFX_PLACE_CHICKEN: "/assets/audio/chicken.mp3",
+  MUSIC_MAIN: "assets/audio/theme.mp3",
+  SFX_CLICK: "assets/audio/click.mp3",
+  SFX_HARVEST: "assets/audio/harvest.mp3",
+  SFX_BUILD: "assets/audio/place.mp3",
+  SFX_PLACE: "assets/audio/place.mp3",
+  SFX_PLACE_CHICKEN: "assets/audio/chicken.mp3",
 };
 
 // Readable sound keys for safe usage

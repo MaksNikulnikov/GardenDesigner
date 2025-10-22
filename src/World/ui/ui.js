@@ -3,8 +3,8 @@ import { SOUND_KEYS, SoundManager } from "../audio/SoundManager";
 const UI_CONFIG = {
   HINT_DURATION: 2000, // default hint display duration (ms)
   CLICK_DEBOUNCE: 100, // minimum delay between click sounds (ms)
-  DAY_SIGN_URL: "/assets/images/sun.png",
-  NIGHT_SIGN_URL: "/assets/images/moon.png",
+  DAY_SIGN_URL: "assets/images/sun.png",
+  NIGHT_SIGN_URL: "assets/images/moon.png",
 };
 
 /**
@@ -27,13 +27,13 @@ export class GameUI {
     // Inject styles dynamically
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "/src/World/ui/style.css";
+    link.href = "ui/style.css";
     document.head.appendChild(link);
   }
 
   /** Loads HTML and initializes UI elements. */
   async _loadUI() {
-    const res = await fetch("/src/World/ui/index.html");
+    const res = await fetch("ui/index.html");
     const html = await res.text();
     document.body.insertAdjacentHTML("beforeend", html);
     this._initElements();
@@ -220,7 +220,7 @@ export class GameUI {
   ) {
     if (!this.$hint) return;
     this.$hint.innerHTML = icon
-      ? `<img src="/assets/images/${icon}.png" alt="" /> <span>${text}</span>`
+      ? `<img src="assets/images/${icon}.png" alt="" /> <span>${text}</span>`
       : text;
     this.$hint.classList.remove("hidden");
 

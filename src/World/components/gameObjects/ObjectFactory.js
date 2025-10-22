@@ -7,7 +7,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
  *
  * @param {Object} options
  * @param {string} options.name - short name, e.g. "corn" or "sheep"
- * @param {string} [options.path] - path to .glb model (default: `/assets/models/{name}.glb`)
+ * @param {string} [options.path] - path to .glb model (default: `assets/models/{name}.glb`)
  * @param {number} [options.stages] - number of growth stages (optional)
  */
 export function createObject({ name, path, stages = 1 }) {
@@ -15,7 +15,7 @@ export function createObject({ name, path, stages = 1 }) {
   const group = new Group();
   group.name = name;
 
-  const modelPath = path || `/assets/models/${name}.glb`;
+  const modelPath = path || `assets/models/${name}.glb`;
 
   // --- prepare multi-stage system ---
   if (stages > 1) {

@@ -9,7 +9,7 @@ export function createObjectWithAnimation({ name, onLoaded }) {
   const group = new Group();
   group.name = name;
 
-  const modelPath = `/assets/models/${name}.glb`;
+  const modelPath = `assets/models/${name}.glb`;
 
   loader.load(
     modelPath,
