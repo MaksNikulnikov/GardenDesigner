@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "./",
+  base: "/GardenDesigner/",
   build: {
     target: "esnext",
     minify: "esbuild", 
