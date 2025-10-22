@@ -37,6 +37,7 @@ export class Step1 extends TutorialStep {
 
     ui.removeHighlights();
     ui.hideAllSubButtons?.();
+    ui.onMenuOpened?.("build", null);
     ui.showHint("Nice! You built your first garden! 🌱");
   }
 }

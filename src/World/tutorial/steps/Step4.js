@@ -51,6 +51,7 @@ export class Step4 extends TutorialStep {
 
   complete() {
     const ui = this.manager.ui;
+    ui.onMenuOpened?.("build", null);
     ui.hideHint();
   }
 }

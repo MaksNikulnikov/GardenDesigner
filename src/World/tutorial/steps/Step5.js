@@ -84,6 +84,7 @@ export class Step5 extends TutorialStep {
 
   complete() {
     const ui = this.manager.ui;
+    ui.onMenuOpened?.("animals", null);
     ui.hideHint();
   }
 }

@@ -53,6 +53,7 @@ export class Step2 extends TutorialStep {
     ui.removeHighlights();
     ui.hideAllSubButtons?.();
     ui.disableAllButtons();
+    ui.onMenuOpened?.("plants", null);
     ui.showHint("Awesome! Now let’s wait for your corn to grow...");
   }
 }

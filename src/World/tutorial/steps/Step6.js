@@ -1,14 +1,18 @@
 import { TutorialStep } from "../TutorialStep.js";
 
+const FAILSAFE_TIMEOUT = 30; // seconds
+
 export class Step6 extends TutorialStep {
   constructor(manager) {
     super(manager);
     this.requiredEggs = 5;
+    this._timer = 0;
     this._checkInterval = null;
   }
 
   start() {
     const ui = this.manager.ui;
+    const game = this.manager.game;
 
     ui.disableAllButtons?.();
     ui.hideAllSubButtons?.();
@@ -25,45 +29,46 @@ export class Step6 extends TutorialStep {
 
     ui.showHint("Now your chickens are laying eggs!", "eggs", { persist: true });
 
-    this._startEggTracking();
-  }
-
-  _startEggTracking() {
-    const ui = this.manager.ui;
-    const game = this.manager.game;
-
+    // check egg count every second
     this._checkInterval = setInterval(() => {
-      const collected = game.state.eggs ?? 0;
-
-      if (collected >= this.requiredEggs) {
-        clearInterval(this._checkInterval);
-        this._onEggGoalReached();
-      } else {
-        ui.showHint(
-          `You collected ${collected}/${this.requiredEggs} eggs\nKeep going!`,
-          "eggs"
-        );
+      const eggs = game.state.eggs;
+      if (eggs >= this.requiredEggs) {
+        this._completeSuccess();
       }
-    }, 5000);
+    }, 1000);
   }
 
-  _onEggGoalReached() {
+  update(delta) {
+    this._timer += delta;
+
+    // 🕒 If 30 seconds passed and player didn’t collect enough eggs
+    if (this._timer > FAILSAFE_TIMEOUT && !this.isComplete) {
+      this._completeTimeout();
+    }
+  }
+
+  _completeSuccess() {
+    if (this.isComplete) return;
+    this.isComplete = true;
+    clearInterval(this._checkInterval);
+
     const ui = this.manager.ui;
-    const game = this.manager.game;
+    ui.showHint("You’re a real farmer! Great job!", "eggs");
+    ui.showCTA("Download GardenMakeover!\n Continue building your amazing farm!");
+  }
 
-    ui.showHint("Amazing! You're now a true farmer!", "animals");
+  _completeTimeout() {
+    if (this.isComplete) return;
+    this.isComplete = true;
+    clearInterval(this._checkInterval);
 
-    setTimeout(() => {
-      ui.showCTA("Download GardenMakeover!\n Continue building your amazing farm!");
-      game.stop?.();
-      if (game.timeScale !== undefined) game.timeScale = 0;
-      this.isComplete = true;
-    }, 2000);
+    const ui = this.manager.ui;
+    ui.showHint("You’re a real farmer! Great job!", "build");
+    ui.showCTA("Download GardenMakeover!\n Continue building your amazing farm!");
   }
 
   complete() {
     clearInterval(this._checkInterval);
-    this.manager.ui.hideHint?.();
-    this.manager.ui.disableAllButtons?.();
+    this.manager.ui.hideHint();
   }
 }
