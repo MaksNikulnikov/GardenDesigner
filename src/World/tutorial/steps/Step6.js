@@ -51,10 +51,10 @@ export class Step6 extends TutorialStep {
     const ui = this.manager.ui;
     const game = this.manager.game;
 
-    ui.showHint("Amazing! You collected enough eggs!\nYou're now a true farmer!", "animals");
+    ui.showHint("Amazing! You're now a true farmer!", "animals");
 
     setTimeout(() => {
-      ui.showCTA("Download GardenMakeover");
+      ui.showCTA("Download GardenMakeover!\n Continue building your amazing farm!");
       game.stop?.();
       if (game.timeScale !== undefined) game.timeScale = 0;
       this.isComplete = true;
