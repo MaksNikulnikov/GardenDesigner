@@ -3,17 +3,17 @@ export const GAME_CONFIG = {
 
   // ===== LIGHTING SETTINGS =====
   LIGHT: {
-    AMBIENT_COLOR: 0xfff6df,
-    AMBIENT_INTENSITY: 1.4,
+    AMBIENT_COLOR: 0xfff8e1,
+    AMBIENT_INTENSITY: 0.8,
 
-    HEMI_SKY_COLOR: 0xbcd3ff,
+    HEMI_SKY_COLOR: 0xcbe8ff,
     HEMI_GROUND_COLOR: 0xffe8b2,
-    HEMI_INTENSITY: 1.2,
+    HEMI_INTENSITY: 0.5,
 
-    SUN_COLOR_DAY: 0xffffff,
-    SUN_COLOR_NIGHT: 0xb38aff,
-    SUN_INTENSITY: 1.5,
-    SUN_POSITION: { x: 6, y: 8, z: 6 },
+    SUN_COLOR_DAY: 0xfff4cc,
+    SUN_COLOR_NIGHT: 0x6b5cff,
+    SUN_INTENSITY: 4.8,
+    SUN_POSITION: { x: 8, y: 10, z: 6 },
   },
   DAY_DURATION: 240,
 
