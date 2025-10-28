@@ -3,11 +3,11 @@ import { FIELDS_CONFIG } from "../config/fieldsConfig.js";
 export class FieldManager {
   constructor(scene) {
     this.scene = scene;
-    this.fields = FIELDS_CONFIG.map(cfg => ({
-      id: cfg.id,
-      type: cfg.type,
-      position: cfg.position.clone(),
-      rotationY: cfg.rotationY ?? 0,
+    this.fields = FIELDS_CONFIG.map(config => ({
+      id: config.id,
+      type: config.type,
+      position: config.position.clone(),
+      rotationY: config.rotationY ?? 0,
       structure: null,
       placeholder: null,
     }));
@@ -15,12 +15,12 @@ export class FieldManager {
 
   getFieldByPosition(point) {
     let closest = null;
-    let minDist = Infinity;
+    let minDistance = Infinity;
     for (const field of this.fields) {
-      const dist = field.position.distanceTo(point);
-      if (dist < 3 && dist < minDist) {
+      const distance = field.position.distanceTo(point);
+      if (distance < 3 && distance < minDistance) {
         closest = field;
-        minDist = dist;
+        minDistance = distance;
       }
     }
     return closest;

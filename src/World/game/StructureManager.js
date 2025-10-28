@@ -11,17 +11,17 @@ export class StructureManager {
     this.onEffectCreated = onEffectCreated;
   }
 
-  createPlaceholder(cfg) {
+  createPlaceholder(config) {
     const model = FACTORIES.placeholder();
-    model.position.copy(cfg.position);
-    if (cfg.rotationY) model.rotation.y = cfg.rotationY;
+    model.position.copy(config.position);
+    if (config.rotationY) model.rotation.y = config.rotationY;
     this.scene.add(model);
 
     return {
-      id: cfg.id,
-      type: cfg.type,
-      position: cfg.position.clone(),
-      rotationY: cfg.rotationY ?? 0,
+      id: config.id,
+      type: config.type,
+      position: config.position.clone(),
+      rotationY: config.rotationY ?? 0,
       placeholder: model,
       structure: null,
     };

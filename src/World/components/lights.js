@@ -6,17 +6,17 @@ import { GAME_CONFIG } from "../config/gameConfig.js";
  */
 function createLights() {
   const group = new Group();
-  const cfg = GAME_CONFIG.LIGHT;
+  const config = GAME_CONFIG.LIGHT;
 
-  const ambient = new AmbientLight(cfg.AMBIENT_COLOR, cfg.AMBIENT_INTENSITY);
+  const ambient = new AmbientLight(config.AMBIENT_COLOR, config.AMBIENT_INTENSITY);
   const hemi = new HemisphereLight(
-    cfg.HEMI_SKY_COLOR,
-    cfg.HEMI_GROUND_COLOR,
-    cfg.HEMI_INTENSITY
+    config.HEMI_SKY_COLOR,
+    config.HEMI_GROUND_COLOR,
+    config.HEMI_INTENSITY
   );
 
-  const sun = new DirectionalLight(cfg.SUN_COLOR_DAY, cfg.SUN_INTENSITY);
-  sun.position.set(cfg.SUN_POSITION.x, cfg.SUN_POSITION.y, cfg.SUN_POSITION.z);
+  const sun = new DirectionalLight(config.SUN_COLOR_DAY, config.SUN_INTENSITY);
+  sun.position.set(config.SUN_POSITION.x, config.SUN_POSITION.y, config.SUN_POSITION.z);
   sun.castShadow = false;
 
   group.add(ambient, hemi, sun);

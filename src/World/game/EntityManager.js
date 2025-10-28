@@ -52,7 +52,7 @@ export class EntityManager {
 
   areAllCropsReady(type = "corn") {
     const crops = this.entities.filter(
-      (e) => e.kind === "plant" && e.type === type
+      (entity) => entity.kind === "plant" && entity.type === type
     );
     if (crops.length === 0) return false;
     return crops.every((e) => e.readyToHarvest);
@@ -72,8 +72,8 @@ export class EntityManager {
   }
 
   tick(delta, state, ui) {
-    for (const e of this.entities) {
-      e.tick?.(delta, state, ui);
+    for (const entity of this.entities) {
+      entity.tick?.(delta, state, ui);
     }
   }
 }
