@@ -10,6 +10,15 @@ Players build gardens and pens, plant crops, place animals, and harvest resource
 - Resource UI, flying reward icons, and sound feedback
 - Mobile-aware camera and control tuning
 
+## Screenshots
+Desktop gameplay:
+
+![Desktop gameplay](docs/screenshots/desktop-gameplay.png)
+
+Mobile gameplay:
+
+![Mobile gameplay](docs/screenshots/mobile-gameplay.png)
+
 ## Architecture
 Core runtime is organized under `src/World`:
 
@@ -66,12 +75,18 @@ Run e2e in headed mode:
 npm run test:e2e:headed
 ```
 
+Capture README screenshots (manual, local):
+```bash
+npm run capture:screenshots
+```
+
 ## Test Coverage
 Current Playwright e2e suite validates:
 
 - app bootstrapping and debug hooks availability
 - core tutorial/gameplay flow (build + plant + CTA reachability)
 - harvest edge case: clicking chicken counter does not grant eggs when not ready
+- mobile layout quality (button sizing, spotlight, CTA typography)
 
 ## Tech Stack
 - Three.js

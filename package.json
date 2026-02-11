@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "lint": "eslint . --ext .js",
     "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "capture:screenshots": "playwright test e2e/visual.capture.spec.js --config playwright.capture.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
