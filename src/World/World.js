@@ -32,10 +32,15 @@ class World {
     this.resizer = new Resizer(container, this.camera, this.renderer);
     cameraHelper.setCamera(this.camera);
     container.append(this.renderer.domElement);
+    this.renderer.domElement.style.opacity = "0";
+    this.renderer.domElement.style.transition = "opacity 260ms ease";
+    this._revealTimer = setTimeout(() => this._revealCanvas(), 2200);
 
     this.controls = createControls(this.camera, this.renderer.domElement);
 
-    const ground = createGround();
+    const ground = createGround({
+      onLoaded: () => this._revealCanvas(),
+    });
     this.scene.add(ground);
     
     this.game = new GameManager(this.scene, this.camera, this.renderer, this.controls);
@@ -70,8 +75,24 @@ class World {
     this.loop.stop();
   }
 
+  _revealCanvas() {
+    if (this._revealTimer) {
+      clearTimeout(this._revealTimer);
+      this._revealTimer = null;
+    }
+    requestAnimationFrame(() => {
+      if (this.renderer?.domElement) {
+        this.renderer.domElement.style.opacity = "1";
+      }
+    });
+  }
+
   dispose() {
     this.stop();
+    if (this._revealTimer) {
+      clearTimeout(this._revealTimer);
+      this._revealTimer = null;
+    }
     this.perfOverlay?.dispose?.();
     this.game?.dispose?.();
     this.resizer?.dispose?.();
