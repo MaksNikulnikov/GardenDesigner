@@ -8,40 +8,64 @@ import { createGround } from './components/ground/ground.js';
 import { GameManager } from './game/GameManager.js';
 import { cameraHelper } from './helpers/CameraHelper.js';
 
-let camera;
-let renderer;
-let scene;
-let loop;
+function disposeSceneObject(root) {
+  root.traverse?.((node) => {
+    if (!node?.isMesh) return;
+    node.geometry?.dispose?.();
+    if (Array.isArray(node.material)) {
+      node.material.forEach((mat) => mat?.dispose?.());
+    } else {
+      node.material?.dispose?.();
+    }
+  });
+}
 
 class World {
   constructor(container) {
-    camera = createCamera();
-    renderer = createRenderer();
-    scene = createScene();
-    loop = new Loop(camera, scene, renderer);
-    new Resizer(container, camera, renderer);
-    cameraHelper.setCamera(camera);
-    container.append(renderer.domElement);
+    this.container = container;
+    this.camera = createCamera();
+    this.renderer = createRenderer();
+    this.scene = createScene();
+    this.loop = new Loop(this.camera, this.scene, this.renderer);
+    this.resizer = new Resizer(container, this.camera, this.renderer);
+    cameraHelper.setCamera(this.camera);
+    container.append(this.renderer.domElement);
 
-    const controls = createControls(camera, renderer.domElement);
+    this.controls = createControls(this.camera, this.renderer.domElement);
 
     const ground = createGround();
-    scene.add(ground);
+    this.scene.add(ground);
     
-    const game = new GameManager(scene, camera, renderer, controls);
-    loop.updatables.push(controls, game);
+    this.game = new GameManager(this.scene, this.camera, this.renderer, this.controls);
+    this.loop.updatables.push(this.controls, this.game);
   }
 
   render() {
-    renderer.render(scene, camera);
+    this.renderer.render(this.scene, this.camera);
   }
 
   start() {
-    loop.start();
+    this.loop.start();
   }
 
   stop() {
-    loop.stop();
+    this.loop.stop();
+  }
+
+  dispose() {
+    this.stop();
+    this.game?.dispose?.();
+    this.resizer?.dispose?.();
+    this.controls?.disposeWithListeners?.();
+    this.camera?.dispose?.();
+    this.renderer?.dispose?.();
+    disposeSceneObject(this.scene);
+    this.scene?.clear?.();
+    cameraHelper.setCamera(null);
+
+    if (this.renderer?.domElement?.parentElement === this.container) {
+      this.container.removeChild(this.renderer.domElement);
+    }
   }
 }
 

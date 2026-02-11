@@ -12,10 +12,15 @@ function createControls(camera, canvas) {
 
   controls.target.set(0, 0, 0);
 
+  const onResize = () => updateZoomLimits(controls);
   updateZoomLimits(controls);
-  window.addEventListener('resize', () => updateZoomLimits(controls));
+  window.addEventListener("resize", onResize);
 
   controls.tick = () => controls.update();
+  controls.disposeWithListeners = () => {
+    window.removeEventListener("resize", onResize);
+    controls.dispose();
+  };
   return controls;
 }
 

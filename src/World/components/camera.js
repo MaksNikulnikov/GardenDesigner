@@ -3,9 +3,13 @@ import { PerspectiveCamera } from 'three';
 function createCamera() {
   const aspect = window.innerWidth / window.innerHeight;
   const camera = new PerspectiveCamera(35, aspect, 0.1, 200);
+  const onResize = () => updateCameraPosition(camera);
 
   updateCameraPosition(camera);
-  window.addEventListener('resize', () => updateCameraPosition(camera));
+  window.addEventListener("resize", onResize);
+  camera.dispose = () => {
+    window.removeEventListener("resize", onResize);
+  };
 
   return camera;
 }

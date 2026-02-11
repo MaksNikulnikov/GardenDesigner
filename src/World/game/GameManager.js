@@ -33,7 +33,6 @@ export class GameManager {
       buildMode: null,
     };
 
-    this.clock = new THREE.Clock();
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
     this.updatables = [];
@@ -50,6 +49,11 @@ export class GameManager {
     this._lastGroundPoint = null;
     this._timeScale = 1;
     this._timeForceRunning = false;
+    this._audioUnlockHandler = null;
+    this._onPointerDown = null;
+    this._onPointerMove = null;
+    this._onPointerLeave = null;
+    this._onDocumentClick = null;
 
     this.field = new FieldManager(scene);
     this.structures = new StructureManager(scene, (fx) => this.addUpdatable(fx));
@@ -90,18 +94,19 @@ export class GameManager {
 
   _initAudio() {
     const sound = SoundManager.instance;
+    this._audioUnlockHandler = async () => {
+      try {
+        sound._unlockAudio();
+        await sound.loadAll();
+        sound.playMusic(true);
+      } catch (err) {
+        console.warn("[GameManager] Failed to initialize audio", err);
+      }
+    };
 
     document.addEventListener(
       "pointerdown",
-      async () => {
-        try {
-          sound._unlockAudio();
-          await sound.loadAll();
-          sound.playMusic(true);
-        } catch (err) {
-          console.warn("[GameManager] Failed to initialize audio", err);
-        }
-      },
+      this._audioUnlockHandler,
       { once: true }
     );
   }
@@ -150,7 +155,7 @@ export class GameManager {
   _setupSceneClick() {
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-    this.renderer.domElement.addEventListener("pointerdown", (event) => {
+    this._onPointerDown = (event) => {
       const point = this._getPointerPointOnGround(event, plane);
       if (!point) return;
       this._lastGroundPoint = point.clone();
@@ -173,9 +178,10 @@ export class GameManager {
       }
 
       this._handleClick(point);
-    });
+    };
+    this.renderer.domElement.addEventListener("pointerdown", this._onPointerDown);
 
-    this.renderer.domElement.addEventListener("pointermove", (event) => {
+    this._onPointerMove = (event) => {
       if (!this.state.selectedItem && !this.state.buildMode) {
         this._setPreviewTarget(null);
         return;
@@ -187,13 +193,15 @@ export class GameManager {
       }
       this._lastGroundPoint = point.clone();
       this._updateInteractionPreview(point);
-    });
+    };
+    this.renderer.domElement.addEventListener("pointermove", this._onPointerMove);
 
-    this.renderer.domElement.addEventListener("pointerleave", () => {
+    this._onPointerLeave = () => {
       this._lastGroundPoint = null;
-    });
+    };
+    this.renderer.domElement.addEventListener("pointerleave", this._onPointerLeave);
 
-    document.addEventListener("click", (e) => {
+    this._onDocumentClick = (e) => {
       const target = e.target;
       if (!(target instanceof Element)) return;
       const el = target.closest("[data-animal-id]");
@@ -204,18 +212,17 @@ export class GameManager {
         this.entities.harvest(entity, this.state, this.ui);
         SoundManager.instance.playSfx(SOUND_KEYS.HARVEST);
       }
-    });
+    };
+    document.addEventListener("click", this._onDocumentClick);
   }
 
   _pickEntityFromRaycast() {
-    const allMeshes = [];
-    for (const entity of this.entities.entities) {
-      entity.obj.traverse((child) => {
-        if (child.isMesh) allMeshes.push(child);
-      });
-    }
+    const roots = this.entities.entities
+      .map((entity) => entity.obj)
+      .filter((obj) => !!obj);
+    if (roots.length === 0) return null;
 
-    const hits = this.raycaster.intersectObjects(allMeshes, true);
+    const hits = this.raycaster.intersectObjects(roots, true);
     if (hits.length === 0) return null;
 
     let hit = hits[0].object;
@@ -636,6 +643,54 @@ export class GameManager {
     this.entities.tick(simulationDelta, this.state, this.ui);
     this.dayNight.tick(simulationDelta);
     for (const obj of this.updatables) obj.tick?.(delta);
+  }
+
+  dispose() {
+    this._cameraTween?.kill?.();
+
+    if (this._onPointerDown) {
+      this.renderer.domElement.removeEventListener("pointerdown", this._onPointerDown);
+      this._onPointerDown = null;
+    }
+    if (this._onPointerMove) {
+      this.renderer.domElement.removeEventListener("pointermove", this._onPointerMove);
+      this._onPointerMove = null;
+    }
+    if (this._onPointerLeave) {
+      this.renderer.domElement.removeEventListener("pointerleave", this._onPointerLeave);
+      this._onPointerLeave = null;
+    }
+    if (this._onDocumentClick) {
+      document.removeEventListener("click", this._onDocumentClick);
+      this._onDocumentClick = null;
+    }
+    if (this._audioUnlockHandler) {
+      document.removeEventListener("pointerdown", this._audioUnlockHandler);
+      this._audioUnlockHandler = null;
+    }
+
+    this.ui?.dispose?.();
+
+    if (this._previewFieldMesh) {
+      this.scene.remove(this._previewFieldMesh);
+      this._previewFieldMesh.geometry?.dispose?.();
+      this._previewFieldMesh.material?.dispose?.();
+      this._previewFieldMesh = null;
+    }
+
+    if (this._previewCellGroup) {
+      this.scene.remove(this._previewCellGroup);
+      this._previewCellGroup.traverse((node) => {
+        if (!node?.isMesh) return;
+        node.geometry?.dispose?.();
+        if (Array.isArray(node.material)) {
+          node.material.forEach((mat) => mat?.dispose?.());
+        } else {
+          node.material?.dispose?.();
+        }
+      });
+      this._previewCellGroup = null;
+    }
   }
 
   _updateAutoPreview() {

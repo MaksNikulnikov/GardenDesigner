@@ -35,6 +35,9 @@ export class GameUI {
     this._spotlightTrackDynamic = false;
     this._spotlightMissingFrames = 0;
     this._onResize = () => this._refreshSpotlight();
+    this._clickSoundHandler = null;
+    this._timeToggleHandler = null;
+    this._styleLink = null;
 
     this.ready = this._loadUI();
 
@@ -43,6 +46,7 @@ export class GameUI {
     link.rel = "stylesheet";
     link.href = "ui/style.css";
     document.head.appendChild(link);
+    this._styleLink = link;
   }
 
   /** Loads HTML and initializes UI elements. */
@@ -114,7 +118,7 @@ export class GameUI {
   // 🎵 Universal click sound
   // ============================================================
   _setupClickSounds() {
-    document.body.addEventListener("click", (e) => {
+    this._clickSoundHandler = (e) => {
       const source = e.target;
       if (!(source instanceof Element)) return;
       const target = source.closest("button, .btn, .sub-btn");
@@ -125,7 +129,9 @@ export class GameUI {
       this._lastClickSoundTime = now;
 
       SoundManager.instance.playSfx(SOUND_KEYS.CLICK);
-    });
+    };
+
+    document.body.addEventListener("click", this._clickSoundHandler);
   }
 
   // ============================================================
@@ -567,11 +573,17 @@ export class GameUI {
     const toggle = document.getElementById("toggle-switch");
     if (!toggle) return;
 
-    toggle.addEventListener("click", () => {
+    if (this._timeToggleHandler) {
+      toggle.removeEventListener("click", this._timeToggleHandler);
+    }
+
+    this._timeToggleHandler = () => {
       SoundManager.instance.playSfx(SOUND_KEYS.CLICK);
       toggle.classList.toggle("night");
       callback?.();
-    });
+    };
+
+    toggle.addEventListener("click", this._timeToggleHandler);
   }
 
   updateClock(timeStr) {
@@ -628,6 +640,36 @@ export class GameUI {
     if (el) {
       el.remove();
       delete this._animalCounters[id];
+    }
+  }
+
+  dispose() {
+    clearTimeout(this._hintTimer);
+    clearTimeout(this._spotlightBounceTimer);
+    clearTimeout(this._spotlightHideTimer);
+    this._stopSpotlightTracking();
+
+    window.removeEventListener("resize", this._onResize);
+    if (this._clickSoundHandler) {
+      document.body.removeEventListener("click", this._clickSoundHandler);
+      this._clickSoundHandler = null;
+    }
+
+    if (this.$toggleSwitch && this._timeToggleHandler) {
+      this.$toggleSwitch.removeEventListener("click", this._timeToggleHandler);
+      this._timeToggleHandler = null;
+    }
+
+    for (const id of Object.keys(this._animalCounters)) {
+      this.removeAnimalCounter(id);
+    }
+
+    document.querySelectorAll(".resource-fly-icon").forEach((node) => node.remove());
+    document.getElementById("game-ui")?.remove();
+
+    if (this._styleLink?.parentNode) {
+      this._styleLink.parentNode.removeChild(this._styleLink);
+      this._styleLink = null;
     }
   }
 }
