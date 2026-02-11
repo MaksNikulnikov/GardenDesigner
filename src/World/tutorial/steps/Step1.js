@@ -37,8 +37,12 @@ export class Step1 extends TutorialStep {
       }
     }
 
-    const hasGarden = game.field.fields.some((f) => f.structure?.type === "garden");
-    if (hasGarden) {
+    const gardenField = game.field.fields.find((f) => f.structure?.type === "garden");
+    const gardenVisible =
+      !!gardenField &&
+      (gardenField.structure?.group?.visible ?? true);
+
+    if (gardenVisible) {
       this.isComplete = true;
     }
   }

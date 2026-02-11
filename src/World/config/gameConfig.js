@@ -36,13 +36,15 @@ export const GAME_CONFIG = {
     corn: {
       category: "plants",
       displayName: "Corn",
+      maxStage: 3,
       /**
        * Array of growth stage durations (in seconds).
        * The length of this array determines the number of growth stages
        * and must match the number of stages available in the 3D model.
        */
-      // 24 in-game hours total (3 stages x 8h each).
-      growthTime: [80, 80, 80],
+      // 24 in-game hours total (2 transitions x 12h each), final stage is controlled by maxStage.
+      // This keeps visual maturity and harvest availability in sync.
+      growthTime: [120, 120],
       reward: {
         type: "corn",
         amount: 5,

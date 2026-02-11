@@ -41,7 +41,7 @@ export class PlantEntity {
       this.stage++;
       this.timer = 0;
       this.nextGrowthIndex++;
-      const max = this.config.growthTime.length;
+      const max = this.config.maxStage ?? this.config.growthTime.length;
       if (this.stage > max) this.stage = max;
       if (this.obj.setStage) this.obj.setStage(this.stage);
 

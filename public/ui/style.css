@@ -346,7 +346,7 @@
 
 .tutorial-dim {
   position: fixed;
-  background: rgba(8, 12, 20, 0.7);
+  background: rgba(8, 12, 20, 0.4);
   pointer-events: auto;
 }
 
