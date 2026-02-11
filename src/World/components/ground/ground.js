@@ -1,20 +1,17 @@
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Group } from 'three';
+import { AssetLoader } from "../../assets/AssetLoader.js";
 
 function createGround() {
   const group = new Group();
-  const loader = new GLTFLoader();
 
-  loader.load(
-    'assets/models/ground.glb',
-    (gltf) => {
-      group.add(gltf.scene);
-    },
-    undefined,
-    (error) => {
-      console.error('Error loading ground.glb:', error);
-    }
-  );
+  AssetLoader.loadGLTF("assets/models/ground.glb")
+    .then((gltf) => {
+      const { scene } = AssetLoader.instantiateGLTF(gltf);
+      group.add(scene);
+    })
+    .catch((error) => {
+      console.error("Error loading ground.glb:", error);
+    });
 
   return group;
 }

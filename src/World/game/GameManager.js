@@ -5,7 +5,6 @@ import { FieldManager } from "./FieldManager.js";
 import { StructureManager } from "./StructureManager.js";
 import { EntityManager } from "./EntityManager.js";
 import { DayNightManager } from "./DayNightManager.js";
-import { TutorialManager } from "../tutorial/TutorialManager.js";
 import { SOUND_KEYS, SoundManager } from "../audio/SoundManager.js";
 import { gsap } from "gsap";
 
@@ -54,6 +53,8 @@ export class GameManager {
     this._onPointerMove = null;
     this._onPointerLeave = null;
     this._onDocumentClick = null;
+    this._isDisposed = false;
+    this._tutorialModulePromise = import("../tutorial/TutorialManager.js");
 
     this.field = new FieldManager(scene);
     this.structures = new StructureManager(scene, (fx) => this.addUpdatable(fx));
@@ -77,18 +78,27 @@ export class GameManager {
     this._setupSceneClick();
     this._initInteractionPreview();
 
-    this.tutorial = new TutorialManager(this.ui, this);
+    this.tutorial = null;
     this.dayNight = new DayNightManager(scene, this.ui);
 
     this._initAudio();
 
-    this.ui.ready.then(() => {
+    this.ui.ready.then(async () => {
+      if (this._isDisposed) return;
+
       this.ui.onDayNightToggle(() => {
         this.dayNight.toggleDayNight();
       });
       this.ui.updateCoins(this.state.coins);
+
+      const module = await this._tutorialModulePromise;
+      if (this._isDisposed) return;
+      const { TutorialManager } = module;
+      this.tutorial = new TutorialManager(this.ui, this);
       this.tutorial.start();
       this.addUpdatable(this.tutorial);
+    }).catch((err) => {
+      console.error("[GameManager] Failed to initialize UI/tutorial", err);
     });
   }
 
@@ -646,6 +656,7 @@ export class GameManager {
   }
 
   dispose() {
+    this._isDisposed = true;
     this._cameraTween?.kill?.();
 
     if (this._onPointerDown) {

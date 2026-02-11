@@ -1,5 +1,5 @@
 import { Group } from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { AssetLoader } from "../../assets/AssetLoader.js";
 
 /**
  * Universal object factory for loading 3D models (animals, plants, structures).
@@ -11,7 +11,6 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
  * @param {number} [options.stages] - number of growth stages (optional)
  */
 export function createObject({ name, path, stages = 1 }) {
-  const loader = new GLTFLoader();
   const group = new Group();
   group.name = name;
 
@@ -34,10 +33,9 @@ export function createObject({ name, path, stages = 1 }) {
   }
 
   // --- load GLB model ---
-  loader.load(
-    modelPath,
-    (gltf) => {
-      const scene = gltf.scene;
+  AssetLoader.loadGLTF(modelPath)
+    .then((gltf) => {
+      const { scene } = AssetLoader.instantiateGLTF(gltf);
 
       if (stages > 1) {
         // e.g. corn_1, corn_2, corn_3
@@ -52,10 +50,8 @@ export function createObject({ name, path, stages = 1 }) {
       } else {
         group.add(scene);
       }
-    },
-    undefined,
-    (err) => console.error(`Error loading ${modelPath}:`, err)
-  );
+    })
+    .catch((err) => console.error(`Error loading ${modelPath}:`, err));
 
   return group;
 }

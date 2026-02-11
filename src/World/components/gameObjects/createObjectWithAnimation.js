@@ -1,29 +1,27 @@
 import { Group, AnimationMixer } from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { AssetLoader } from "../../assets/AssetLoader.js";
 
 /**
  * Loads a .glb model with animation (e.g. animal)
  */
 export function createObjectWithAnimation({ name, onLoaded }) {
-  const loader = new GLTFLoader();
   const group = new Group();
   group.name = name;
 
   const modelPath = `assets/models/${name}.glb`;
 
-  loader.load(
-    modelPath,
-    (gltf) => {
-      const model = gltf.scene;
+  AssetLoader.loadGLTF(modelPath)
+    .then((gltf) => {
+      const { scene: model, animations } = AssetLoader.instantiateGLTF(gltf);
       if (!model) return;
 
       group.add(model);
       group.model = model;
 
       // Play the first animation if available
-      if (gltf.animations?.length) {
+      if (animations.length) {
         const mixer = new AnimationMixer(model);
-        const action = mixer.clipAction(gltf.animations[0]);
+        const action = mixer.clipAction(animations[0]);
         action.play();
 
         group.mixer = mixer;
@@ -32,10 +30,8 @@ export function createObjectWithAnimation({ name, onLoaded }) {
 
       // Trigger callback when model is ready
       onLoaded?.(group, gltf);
-    },
-    undefined,
-    (err) => console.error(`Failed to load ${modelPath}:`, err)
-  );
+    })
+    .catch((err) => console.error(`Failed to load ${modelPath}:`, err));
 
   return group;
 }
