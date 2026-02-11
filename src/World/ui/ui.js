@@ -115,8 +115,9 @@ export class GameUI {
   // ============================================================
   _setupClickSounds() {
     document.body.addEventListener("click", (e) => {
-      // @ts-ignore
-      const target = e.target.closest("button, .btn, .sub-btn");
+      const source = e.target;
+      if (!(source instanceof Element)) return;
+      const target = source.closest("button, .btn, .sub-btn");
       if (!target || target.classList.contains("disabled")) return;
 
       const now = performance.now();
@@ -322,12 +323,11 @@ export class GameUI {
       this.$hintIcon = this.$hint.querySelector("#hint-icon");
       this.$hintText = this.$hint.querySelector("#hint-text");
     }
+    if (!this.$hintIcon || !this.$hintText) return;
     this.$hintText.textContent = text ?? "";
 
     if (icon) {
-      // @ts-ignore
       this.$hintIcon.src = `assets/images/${icon}.png`;
-      // @ts-ignore
       this.$hintIcon.alt = icon;
       this.$hintIcon.classList.remove("hidden");
     } else {
@@ -586,9 +586,7 @@ export class GameUI {
   updateDayNight(isDay) {
     const icon = document.getElementById("day-night-icon");
     if (!icon) return;
-    // @ts-ignore
     icon.src = isDay ? UI_CONFIG.DAY_SIGN_URL : UI_CONFIG.NIGHT_SIGN_URL;
-    // @ts-ignore
     icon.alt = isDay ? "Day" : "Night";
   }
 

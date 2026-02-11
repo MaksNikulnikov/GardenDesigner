@@ -47,8 +47,11 @@ export class SoundManager {
   /** Returns or creates an AudioContext */
   _getCtx() {
     if (!this.ctx) {
-      // @ts-ignore
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) {
+        throw new Error("Web Audio API is not supported in this browser");
+      }
+      this.ctx = new AudioCtx();
     }
     return this.ctx;
   }

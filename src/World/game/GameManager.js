@@ -195,8 +195,7 @@ export class GameManager {
 
     document.addEventListener("click", (e) => {
       const target = e.target;
-      if (!target) return;
-      // @ts-ignore
+      if (!(target instanceof Element)) return;
       const el = target.closest("[data-animal-id]");
       if (!el) return;
       const id = el.dataset.animalId;
