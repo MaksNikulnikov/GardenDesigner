@@ -7,6 +7,7 @@ import { Loop } from './systems/Loop.js';
 import { createGround } from './components/ground/ground.js';
 import { GameManager } from './game/GameManager.js';
 import { cameraHelper } from './helpers/CameraHelper.js';
+import { AssetLoader } from "./assets/AssetLoader.js";
 
 function disposeSceneObject(root) {
   root.traverse?.((node) => {
@@ -38,6 +39,14 @@ class World {
     
     this.game = new GameManager(this.scene, this.camera, this.renderer, this.controls);
     this.loop.updatables.push(this.controls, this.game);
+
+    AssetLoader.preloadGLTF([
+      "assets/models/placeholder.glb",
+      "assets/models/garden.glb",
+      "assets/models/pen.glb",
+      "assets/models/corn.glb",
+      "assets/models/chicken.glb",
+    ]);
   }
 
   render() {

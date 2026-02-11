@@ -22,6 +22,14 @@ function instantiateGLTF(gltf) {
   return { scene, animations: gltf.animations ?? [] };
 }
 
+function preloadGLTF(paths = []) {
+  for (const path of paths) {
+    loadGLTF(path).catch((err) => {
+      console.error(`[AssetLoader] Failed to preload ${path}`, err);
+    });
+  }
+}
+
 function loadTexture(path, { colorSpace } = {}) {
   if (!textureCache.has(path)) {
     const texture = textureLoader.load(path);
@@ -37,4 +45,5 @@ export const AssetLoader = {
   loadGLTF,
   instantiateGLTF,
   loadTexture,
+  preloadGLTF,
 };
