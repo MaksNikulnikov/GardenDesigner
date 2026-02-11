@@ -303,8 +303,7 @@ export class GameUI {
     if (!node) return;
     node.classList.remove("resource-hit");
     // Force reflow to restart the animation.
-    // eslint-disable-next-line no-unused-expressions
-    node.offsetWidth;
+    void node.offsetWidth;
     node.classList.add("resource-hit");
     setTimeout(() => node.classList.remove("resource-hit"), 320);
   }
@@ -536,8 +535,7 @@ export class GameUI {
     clearTimeout(this._spotlightBounceTimer);
     this.$tutorialOverlay.classList.remove("bounce");
     // Force reflow so animation can restart.
-    // eslint-disable-next-line no-unused-expressions
-    this.$tutorialOverlay.offsetWidth;
+    void this.$tutorialOverlay.offsetWidth;
     this.$tutorialOverlay.classList.add("bounce");
     this._spotlightBounceTimer = setTimeout(() => {
       this.$tutorialOverlay?.classList.remove("bounce");
