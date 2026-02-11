@@ -7,6 +7,7 @@ import { EntityManager } from "./EntityManager.js";
 import { DayNightManager } from "./DayNightManager.js";
 import { SoundManager } from "../audio/SoundManager.js";
 import { gsap } from "gsap";
+import { InteractionController } from "./InteractionController.js";
 
 const INTERACTION_CONFIG = {
   CELL_PICK_RADIUS: 1.6,
@@ -32,8 +33,6 @@ export class GameManager {
       buildMode: null,
     };
 
-    this.raycaster = new THREE.Raycaster();
-    this.pointer = new THREE.Vector2();
     this.updatables = [];
     this._cameraTween = null;
     this.tutorialTargets = {
@@ -49,10 +48,7 @@ export class GameManager {
     this._timeScale = 1;
     this._timeForceRunning = false;
     this._audioUnlockHandler = null;
-    this._onPointerDown = null;
-    this._onPointerMove = null;
-    this._onPointerLeave = null;
-    this._onDocumentClick = null;
+    this.interaction = null;
     this._isDisposed = false;
     this._tutorialModulePromise = import("../tutorial/TutorialManager.js");
 
@@ -75,7 +71,7 @@ export class GameManager {
       onItemSelect: (item) => this._onItemSelect(item),
     });
 
-    this._setupSceneClick();
+    this._setupInteraction();
     this._initInteractionPreview();
 
     this.tutorial = null;
@@ -162,87 +158,58 @@ export class GameManager {
     this._setPreviewTarget(null);
   }
 
-  _setupSceneClick() {
-    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+  _setupInteraction() {
+    this.interaction = new InteractionController({
+      renderer: this.renderer,
+      camera: this.camera,
+      getPickableEntities: () => this.entities.entities,
+      onGroundPointDown: ({ point, raycastEntity }) => {
+        this._lastGroundPoint = point.clone();
 
-    this._onPointerDown = (event) => {
-      const point = this._getPointerPointOnGround(event, plane);
-      if (!point) return;
-      this._lastGroundPoint = point.clone();
+        if (this.state.selectedItem || this.state.buildMode) {
+          this._handleClick(point);
+          return;
+        }
 
-      if (this.state.selectedItem || this.state.buildMode) {
+        if (raycastEntity) {
+          this.entities.harvest(raycastEntity, this.state, this.ui);
+          return;
+        }
+
+        const nearestHarvestable = this._findNearestHarvestableEntity(point);
+        if (nearestHarvestable) {
+          this.entities.harvest(nearestHarvestable, this.state, this.ui);
+          return;
+        }
+
         this._handleClick(point);
-        return;
-      }
+      },
+      onGroundPointMove: (point) => {
+        if (!this.state.selectedItem && !this.state.buildMode) {
+          this._setPreviewTarget(null);
+          return;
+        }
 
-      const hitEntity = this._pickEntityFromRaycast();
-      if (hitEntity) {
-        this.entities.harvest(hitEntity, this.state, this.ui);
-        return;
-      }
+        if (!point) {
+          this._setPreviewTarget(null);
+          return;
+        }
 
-      const nearestHarvestable = this._findNearestHarvestableEntity(point);
-      if (nearestHarvestable) {
-        this.entities.harvest(nearestHarvestable, this.state, this.ui);
-        return;
-      }
+        this._lastGroundPoint = point.clone();
+        this._updateInteractionPreview(point);
+      },
+      onPointerLeave: () => {
+        this._lastGroundPoint = null;
+      },
+      onCounterClick: (id) => {
+        const entity = this.entities.entities.find((entry) => entry.id === id);
+        if (entity) {
+          this.entities.harvest(entity, this.state, this.ui);
+        }
+      },
+    });
 
-      this._handleClick(point);
-    };
-    this.renderer.domElement.addEventListener("pointerdown", this._onPointerDown);
-
-    this._onPointerMove = (event) => {
-      if (!this.state.selectedItem && !this.state.buildMode) {
-        this._setPreviewTarget(null);
-        return;
-      }
-      const point = this._getPointerPointOnGround(event, plane);
-      if (!point) {
-        this._setPreviewTarget(null);
-        return;
-      }
-      this._lastGroundPoint = point.clone();
-      this._updateInteractionPreview(point);
-    };
-    this.renderer.domElement.addEventListener("pointermove", this._onPointerMove);
-
-    this._onPointerLeave = () => {
-      this._lastGroundPoint = null;
-    };
-    this.renderer.domElement.addEventListener("pointerleave", this._onPointerLeave);
-
-    this._onDocumentClick = (e) => {
-      const target = e.target;
-      if (!(target instanceof Element)) return;
-      const el = target.closest("[data-animal-id]");
-      if (!el) return;
-      const id = el.dataset.animalId;
-      const entity = this.entities.entities.find((entry) => entry.id === id);
-      if (entity) {
-        this.entities.harvest(entity, this.state, this.ui);
-      }
-    };
-    document.addEventListener("click", this._onDocumentClick);
-  }
-
-  _pickEntityFromRaycast() {
-    const roots = this.entities.entities
-      .map((entity) => entity.obj)
-      .filter((obj) => !!obj);
-    if (roots.length === 0) return null;
-
-    const hits = this.raycaster.intersectObjects(roots, true);
-    if (hits.length === 0) return null;
-
-    let hit = hits[0].object;
-    let foundId = null;
-    while (hit && !foundId) {
-      if (hit.userData?.entityId) foundId = hit.userData.entityId;
-      hit = hit.parent;
-    }
-
-    if (!foundId) return null;
-    return this.entities.entities.find((entry) => entry.id === foundId) || null;
+    this.interaction.start();
   }
 
   _handleClick(point) {
@@ -475,17 +442,6 @@ export class GameManager {
     );
   }
 
-  _getPointerPointOnGround(event, plane) {
-    const rect = this.renderer.domElement.getBoundingClientRect();
-    this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    this.raycaster.setFromCamera(this.pointer, this.camera);
-
-    const point = new THREE.Vector3();
-    const hit = this.raycaster.ray.intersectPlane(plane, point);
-    return hit ? point : null;
-  }
-
   _initInteractionPreview() {
     const fieldRing = new THREE.Mesh(
       new THREE.RingGeometry(0.55, 0.76, 32),
@@ -657,23 +613,8 @@ export class GameManager {
   dispose() {
     this._isDisposed = true;
     this._cameraTween?.kill?.();
-
-    if (this._onPointerDown) {
-      this.renderer.domElement.removeEventListener("pointerdown", this._onPointerDown);
-      this._onPointerDown = null;
-    }
-    if (this._onPointerMove) {
-      this.renderer.domElement.removeEventListener("pointermove", this._onPointerMove);
-      this._onPointerMove = null;
-    }
-    if (this._onPointerLeave) {
-      this.renderer.domElement.removeEventListener("pointerleave", this._onPointerLeave);
-      this._onPointerLeave = null;
-    }
-    if (this._onDocumentClick) {
-      document.removeEventListener("click", this._onDocumentClick);
-      this._onDocumentClick = null;
-    }
+    this.interaction?.dispose?.();
+    this.interaction = null;
     if (this._audioUnlockHandler) {
       document.removeEventListener("pointerdown", this._audioUnlockHandler);
       this._audioUnlockHandler = null;

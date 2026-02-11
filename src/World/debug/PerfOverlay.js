@@ -1,10 +1,11 @@
 const PANEL_STYLE = `
 position: fixed;
 top: 10px;
-right: 10px;
+left: 50%;
+transform: translateX(-50%);
 z-index: 9999;
 padding: 10px 12px;
-min-width: 170px;
+min-width: 128px;
 background: rgba(8, 12, 24, 0.78);
 backdrop-filter: blur(6px);
 border: 1px solid rgba(140, 178, 255, 0.28);
@@ -82,4 +83,3 @@ export class PerfOverlay {
     this._root?.remove();
   }
 }
-

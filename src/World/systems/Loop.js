@@ -22,8 +22,13 @@ class Loop {
 
   tick() {
     const delta = this.clock.getDelta();
-    for (const object of this.updatables) {
-      object.tick(delta);
+    for (let i = 0; i < this.updatables.length; i++) {
+      const object = this.updatables[i];
+      const keep = object?.tick?.(delta);
+      if (keep === false) {
+        this.updatables.splice(i, 1);
+        i -= 1;
+      }
     }
   }
 }

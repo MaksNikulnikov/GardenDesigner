@@ -42,6 +42,8 @@ export function createSmokeEffect(
     yOffset = SMOKE_Y_OFFSET,
   } = {}
 ) {
+  let active = true;
+
   const textureMain = AssetLoader.loadTexture("assets/images/smoke.png", {
     colorSpace: THREE.SRGBColorSpace,
   });
@@ -105,6 +107,8 @@ export function createSmokeEffect(
 
   // === Animation logic per frame ===
   group.tick = () => {
+    if (!active) return false;
+
     const t = performance.now() * 0.001 * SMOKE_SPEED;
 
     const updateLayer = (layer) => {
@@ -123,16 +127,28 @@ export function createSmokeEffect(
 
     updateLayer(inner);
     updateLayer(outer);
+    return true;
   };
 
-  // === Cleanup ===
-  setTimeout(() => {
+  const disposeEffect = () => {
+    if (!active) return;
+    active = false;
     scene.remove(group);
     inner.geometry.dispose();
     inner.material.dispose();
     outer.geometry.dispose();
     outer.material.dispose();
+  };
+
+  // === Cleanup ===
+  const cleanupTimer = setTimeout(() => {
+    disposeEffect();
   }, duration * 1000 + 500);
+
+  group.dispose = () => {
+    clearTimeout(cleanupTimer);
+    disposeEffect();
+  };
 
   return group;
 }
