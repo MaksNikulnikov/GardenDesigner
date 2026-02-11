@@ -24,10 +24,10 @@ function updateZoomLimits(controls) {
   const isPortrait = aspect < 1;
 
   if (isPortrait) {
-    controls.minDistance = 45;
-    controls.maxDistance = 100;
+    controls.minDistance = 22;
+    controls.maxDistance = 42;
   } else {
-    controls.minDistance = 30;
+    controls.minDistance = 28;
     controls.maxDistance = 55;
   }
 }

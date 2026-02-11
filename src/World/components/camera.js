@@ -15,9 +15,11 @@ function updateCameraPosition(camera) {
   const isPortrait = aspect < 1;
 
   if (isPortrait) {
-    camera.position.set(-3, 70, 70);
+    camera.position.set(-2, 34, 34);
+    camera.fov = 38;
   } else {
     camera.position.set(-3, 45, 45);
+    camera.fov = 35;
   }
 
   camera.lookAt(0, 0, 0);

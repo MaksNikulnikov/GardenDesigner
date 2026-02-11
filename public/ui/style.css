@@ -507,6 +507,32 @@
     gap: 6px;
   }
 
+  .top-bar {
+    padding-top: 10px;
+  }
+
+  .res-item {
+    font-size: 15px;
+  }
+
+  .day-night .time-row {
+    font-size: 14px;
+  }
+
+  .toggle-switch {
+    width: 68px;
+    height: 28px;
+  }
+
+  .toggle-switch::before {
+    width: 24px;
+    height: 24px;
+  }
+
+  .toggle-switch.night::before {
+    left: calc(100% - 26px);
+  }
+
   .hint-box {
     bottom: 50%;
     transform: translateY(-50%);
@@ -515,25 +541,35 @@
   }
 
   .main-buttons {
-    gap: 6px;
+    bottom: 3%;
+    gap: 10px;
   }
 
   .sub-buttons {
-    bottom: 15%;
-    gap: 6px;
+    bottom: 16%;
+    gap: 8px;
   }
 
   .main-btn,
   .sub-btn {
-    width: 56px;
-    padding: 4px;
-    font-size: 9px;
+    width: 76px;
+    min-height: 76px;
+    padding: 8px 6px 6px;
+    font-size: 10px;
   }
 
   .main-btn img,
   .sub-btn img {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .cta-button {
+    max-width: min(88vw, 360px);
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.2;
+    letter-spacing: 0.4px;
   }
 }
 

@@ -47,6 +47,7 @@ export class GameManager {
     this._previewPulse = 0;
     this._previewResolvedCell = null;
     this._previewResolvedField = null;
+    this._lastGroundPoint = null;
     this._timeScale = 1;
     this._timeForceRunning = false;
 
@@ -152,6 +153,7 @@ export class GameManager {
     this.renderer.domElement.addEventListener("pointerdown", (event) => {
       const point = this._getPointerPointOnGround(event, plane);
       if (!point) return;
+      this._lastGroundPoint = point.clone();
 
       if (this.state.selectedItem || this.state.buildMode) {
         this._handleClick(point);
@@ -183,11 +185,12 @@ export class GameManager {
         this._setPreviewTarget(null);
         return;
       }
+      this._lastGroundPoint = point.clone();
       this._updateInteractionPreview(point);
     });
 
     this.renderer.domElement.addEventListener("pointerleave", () => {
-      this._setPreviewTarget(null);
+      this._lastGroundPoint = null;
     });
 
     document.addEventListener("click", (e) => {
@@ -611,6 +614,8 @@ export class GameManager {
   }
 
   tick(delta) {
+    this._updateAutoPreview();
+
     this._previewPulse += delta * 4;
     if (this._previewCellGroup?.visible) {
       const bob = Math.sin(this._previewPulse) * 0.05;
@@ -632,6 +637,38 @@ export class GameManager {
     this.entities.tick(simulationDelta, this.state, this.ui);
     this.dayNight.tick(simulationDelta);
     for (const obj of this.updatables) obj.tick?.(delta);
+  }
+
+  _updateAutoPreview() {
+    if (!this.state.selectedItem && !this.state.buildMode) {
+      this._setPreviewTarget(null);
+      return;
+    }
+
+    if (this._lastGroundPoint) {
+      this._updateInteractionPreview(this._lastGroundPoint);
+      return;
+    }
+
+    if (this.state.buildMode) {
+      const targetPoint = this.getTutorialBuildFocusPoint(this.state.buildMode);
+      if (targetPoint) {
+        this._updateInteractionPreview(targetPoint);
+      }
+      return;
+    }
+
+    if (this.state.selectedItem === "corn") {
+      const targetPoint = this.getTutorialPlantCellFocusPoint();
+      if (targetPoint) this._updateInteractionPreview(targetPoint);
+      return;
+    }
+
+    if (this.state.selectedItem === "chicken") {
+      const targetPoint = this.getTutorialAnimalCellFocusPoint();
+      if (targetPoint) this._updateInteractionPreview(targetPoint);
+      return;
+    }
   }
 
   waitForBuild(callback) {
