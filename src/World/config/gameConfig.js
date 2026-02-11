@@ -41,7 +41,8 @@ export const GAME_CONFIG = {
        * The length of this array determines the number of growth stages
        * and must match the number of stages available in the 3D model.
        */
-      growthTime: [3, 3, 0],
+      // 24 in-game hours total (3 stages x 8h each).
+      growthTime: [80, 80, 80],
       reward: {
         type: "corn",
         amount: 5,

@@ -47,6 +47,8 @@ export class GameManager {
     this._previewPulse = 0;
     this._previewResolvedCell = null;
     this._previewResolvedField = null;
+    this._timeScale = 1;
+    this._timeForceRunning = false;
 
     this.field = new FieldManager(scene);
     this.structures = new StructureManager(scene, (fx) => this.addUpdatable(fx));
@@ -114,6 +116,18 @@ export class GameManager {
   clearSelectedItem() {
     this.state.selectedItem = null;
     this._setPreviewTarget(null);
+  }
+
+  setTimeFlow({ scale = 1, forceRunning = false } = {}) {
+    this._timeScale = Math.max(0, scale);
+    this._timeForceRunning = !!forceRunning;
+    this.ui?.setTimeWarpActive?.(this._timeScale > 1.05);
+  }
+
+  resetTimeFlow() {
+    this._timeScale = 1;
+    this._timeForceRunning = false;
+    this.ui?.setTimeWarpActive?.(false);
   }
 
   _onCategorySelect(category) {
@@ -611,8 +625,12 @@ export class GameManager {
       );
     }
 
-    this.entities.tick(delta, this.state, this.ui);
-    this.dayNight.tick(delta);
+    const hasActiveGrowth = this.entities.hasActiveGrowth?.() ?? false;
+    const shouldAdvanceTime = this._timeForceRunning || hasActiveGrowth;
+    const simulationDelta = shouldAdvanceTime ? delta * this._timeScale : 0;
+
+    this.entities.tick(simulationDelta, this.state, this.ui);
+    this.dayNight.tick(simulationDelta);
     for (const obj of this.updatables) obj.tick?.(delta);
   }
 

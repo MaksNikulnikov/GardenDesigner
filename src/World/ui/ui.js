@@ -91,6 +91,9 @@ export class GameUI {
     });
 
     this.$hint = document.querySelector("#hint-box");
+    this.$dayNight = document.getElementById("day-night");
+    this.$toggleSwitch = document.getElementById("toggle-switch");
+    this.$timeWarpIndicator = document.getElementById("time-warp-indicator");
     this.$tutorialOverlay = document.getElementById("tutorial-overlay");
     this.$tutorialDims = {
       top: document.getElementById("tutorial-dim-top"),
@@ -501,6 +504,21 @@ export class GameUI {
     icon.src = isDay ? UI_CONFIG.DAY_SIGN_URL : UI_CONFIG.NIGHT_SIGN_URL;
     // @ts-ignore
     icon.alt = isDay ? "Day" : "Night";
+  }
+
+  setTimeWarpActive(active) {
+    if (this.$dayNight) {
+      this.$dayNight.classList.toggle("time-warping", !!active);
+    }
+    if (this.$timeWarpIndicator) {
+      this.$timeWarpIndicator.classList.toggle("hidden", !active);
+    }
+  }
+
+  setTimeToggleLocked(locked) {
+    if (!this.$toggleSwitch) return;
+    this.$toggleSwitch.classList.toggle("disabled", !!locked);
+    this.$toggleSwitch.setAttribute("aria-disabled", locked ? "true" : "false");
   }
 
   // ============================================================

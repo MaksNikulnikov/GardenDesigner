@@ -80,4 +80,21 @@ export class EntityManager {
       entity.tick?.(delta, state, ui);
     }
   }
+
+  hasActiveGrowth() {
+    return this.entities.some((entity) => {
+      if (!entity) return false;
+
+      if (entity.kind === "plant") {
+        return !entity.readyToHarvest && !entity.harvested;
+      }
+
+      if (entity.kind === "animal") {
+        const maxStorage = entity.config?.maxStorage ?? 3;
+        return !!entity.producing && (entity.stored ?? 0) < maxStorage;
+      }
+
+      return false;
+    });
+  }
 }
