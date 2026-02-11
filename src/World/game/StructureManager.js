@@ -5,10 +5,26 @@ import { createSmokeEffect } from "../effects/createSmokeEffect.js";
 import * as THREE from "three";
 import { SoundManager, SOUND_KEYS } from "../audio/SoundManager.js";
 
+function disposeObject3D(root) {
+  root?.traverse?.((node) => {
+    if (!node?.isMesh) return;
+    node.geometry?.dispose?.();
+    if (Array.isArray(node.material)) {
+      node.material.forEach((mat) => mat?.dispose?.());
+    } else {
+      node.material?.dispose?.();
+    }
+  });
+}
+
 export class StructureManager {
   constructor(scene, onEffectCreated) {
     this.scene = scene;
     this.onEffectCreated = onEffectCreated;
+    this._placeholders = new Set();
+    this._structures = new Set();
+    this._effects = new Set();
+    this._buildCalls = new Set();
   }
 
   createPlaceholder(config) {
@@ -16,6 +32,7 @@ export class StructureManager {
     model.position.copy(config.position);
     if (config.rotationY) model.rotation.y = config.rotationY;
     this.scene.add(model);
+    this._placeholders.add(model);
 
     return {
       id: config.id,
@@ -30,6 +47,8 @@ export class StructureManager {
   removePlaceholder(field) {
     if (!field?.placeholder) return;
     this.scene.remove(field.placeholder);
+    this._placeholders.delete(field.placeholder);
+    disposeObject3D(field.placeholder);
 
     return {
       id: field.id,
@@ -47,6 +66,7 @@ export class StructureManager {
     const buildTime = GAME_CONFIG.STRUCTURES[type].buildTime;
 
     const smoke = createSmokeEffect(this.scene, origin, { duration: buildTime });
+    this._effects.add(smoke);
     this.onEffectCreated?.(smoke);
 
     const group = factoryFn();
@@ -56,9 +76,11 @@ export class StructureManager {
     group.scale.set(0.001, 0.001, 0.001);
     group.visible = false;
     this.scene.add(group);
+    this._structures.add(group);
     SoundManager.instance.playSfx(SOUND_KEYS.BUILD);
     // Animate appearance
-    gsap.delayedCall(buildTime, () => {
+    const delayed = gsap.delayedCall(buildTime, () => {
+      this._buildCalls.delete(delayed);
       group.visible = true;
       gsap.fromTo(
         group.scale,
@@ -75,6 +97,7 @@ export class StructureManager {
         }
       );
     });
+    this._buildCalls.add(delayed);
 
     // Create grid of cells
     const cellLayout = GAME_CONFIG.STRUCTURES[type].cellLayout;
@@ -125,5 +148,34 @@ export class StructureManager {
   createAnimalPen(field) {
     const offsetY = GAME_CONFIG.OFFSET_Y.PEN - GAME_CONFIG.OFFSET_Y.PLACEHOLDER;
     return this._createStructure(field, "pen", FACTORIES.pen, offsetY, "animals");
+  }
+
+  dispose(fields = []) {
+    for (const tween of this._buildCalls) {
+      tween?.kill?.();
+    }
+    this._buildCalls.clear();
+
+    for (const effect of this._effects) {
+      effect?.dispose?.();
+    }
+    this._effects.clear();
+
+    for (const structure of this._structures) {
+      this.scene.remove(structure);
+      disposeObject3D(structure);
+    }
+    this._structures.clear();
+
+    for (const placeholder of this._placeholders) {
+      this.scene.remove(placeholder);
+      disposeObject3D(placeholder);
+    }
+    this._placeholders.clear();
+
+    for (const field of fields) {
+      field.placeholder = null;
+      field.structure = null;
+    }
   }
 }

@@ -36,6 +36,8 @@ export class TutorialManager {
 
   stop() {
     this.running = false;
+    this.activeStep?.complete?.();
+    this.activeStep = null;
   }
 
   _runCurrentStep() {
@@ -63,5 +65,10 @@ export class TutorialManager {
         this.running = false;
       }
     }
+  }
+
+  dispose() {
+    this.stop();
+    this.steps = [];
   }
 }

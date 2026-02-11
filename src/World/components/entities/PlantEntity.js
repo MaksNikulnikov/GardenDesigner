@@ -1,6 +1,18 @@
 import { GAME_CONFIG } from "../../config/gameConfig.js";
 import { SoundManager, SOUND_KEYS } from "../../audio/SoundManager.js";
 
+function disposeObject3D(root) {
+  root?.traverse?.((node) => {
+    if (!node?.isMesh) return;
+    node.geometry?.dispose?.();
+    if (Array.isArray(node.material)) {
+      node.material.forEach((mat) => mat?.dispose?.());
+    } else {
+      node.material?.dispose?.();
+    }
+  });
+}
+
 export class PlantEntity {
   constructor(scene, cell, type, factory, state, ui) {
     this.id = Math.random().toString(36).slice(2);
@@ -75,5 +87,13 @@ export class PlantEntity {
     this.scene.remove(this.obj);
     this.cell.content = null;
     this.harvested = true;
+  }
+
+  dispose() {
+    this.scene.remove(this.obj);
+    if (this.cell?.content === this.obj) {
+      this.cell.content = null;
+    }
+    disposeObject3D(this.obj);
   }
 }

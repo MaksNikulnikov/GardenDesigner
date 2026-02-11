@@ -57,6 +57,7 @@ export class GameManager {
     this.entities = new EntityManager(
       scene,
       (obj) => this.addUpdatable(obj),
+      (obj) => this.removeUpdatable(obj),
       this.camera
     );
 
@@ -619,6 +620,13 @@ export class GameManager {
       document.removeEventListener("pointerdown", this._audioUnlockHandler);
       this._audioUnlockHandler = null;
     }
+
+    this.tutorial?.dispose?.();
+    this.tutorial = null;
+    this.dayNight?.dispose?.();
+    this.entities?.dispose?.();
+    this.structures?.dispose?.(this.field?.fields ?? []);
+    this.updatables = [];
 
     this.ui?.dispose?.();
 

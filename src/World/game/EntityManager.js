@@ -5,9 +5,10 @@ import { FACTORIES } from "../components/gameObjects/factories.js";
 import { GAME_CONFIG } from "../config/gameConfig.js";
 
 export class EntityManager {
-  constructor(scene, addUpdatable, camera) {
+  constructor(scene, addUpdatable, removeUpdatable, camera) {
     this.scene = scene;
     this.addUpdatable = addUpdatable;
+    this.removeUpdatable = removeUpdatable;
     this.camera = camera;
     this.entities = [];
     this.isHarvestAllowed = false;
@@ -39,6 +40,7 @@ export class EntityManager {
         type,
         FACTORIES[type],
         this.addUpdatable,
+        this.removeUpdatable,
         ui,
         state
       );
@@ -72,6 +74,7 @@ export class EntityManager {
     entity.harvest(state, ui);
     if (entity.kind === "plant" && entity.harvested) {
       this.entities = this.entities.filter((e) => e !== entity);
+      entity.dispose?.();
     }
   }
 
@@ -96,5 +99,12 @@ export class EntityManager {
 
       return false;
     });
+  }
+
+  dispose() {
+    for (const entity of this.entities) {
+      entity.dispose?.();
+    }
+    this.entities = [];
   }
 }

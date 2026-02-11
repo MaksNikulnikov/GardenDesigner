@@ -18,6 +18,7 @@ export class DayNightManager {
 
     const { group, ambient, hemi, directional } = createLights();
     this.scene.add(group);
+    this.lightGroup = group;
 
     this.ambient = ambient;
     this.hemi = hemi;
@@ -91,5 +92,12 @@ export class DayNightManager {
     const suffix = hour >= 12 ? "p.m." : "a.m.";
     const displayH = ((hour + 11) % 12) + 1;
     return `${displayH}:${minute.toString().padStart(2, "0")} ${suffix}`;
+  }
+
+  dispose() {
+    if (this.lightGroup) {
+      this.scene.remove(this.lightGroup);
+      this.lightGroup = null;
+    }
   }
 }

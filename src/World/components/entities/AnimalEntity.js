@@ -5,16 +5,31 @@ import { GAME_CONFIG } from "../../config/gameConfig.js";
 import { cameraHelper } from "../../helpers/CameraHelper.js";
 import { SoundManager, SOUND_KEYS } from "../../audio/SoundManager.js";
 
+function disposeObject3D(root) {
+  root?.traverse?.((node) => {
+    if (!node?.isMesh) return;
+    node.geometry?.dispose?.();
+    if (Array.isArray(node.material)) {
+      node.material.forEach((mat) => mat?.dispose?.());
+    } else {
+      node.material?.dispose?.();
+    }
+  });
+}
+
 export class AnimalEntity {
-  constructor(scene, cell, type, factory, addUpdatable, ui, state) {
+  constructor(scene, cell, type, factory, addUpdatable, removeUpdatable, ui, state) {
     this.id = Math.random().toString(36).slice(2);
     this.scene = scene;
     this.cell = cell;
     this.type = type;
     this.factory = factory;
     this.addUpdatable = addUpdatable;
+    this.removeUpdatable = removeUpdatable;
     this.ui = ui;
     this.state = state;
+    this._spawnTween = null;
+    this._modelGroup = null;
 
     const config = GAME_CONFIG.ITEMS[type];
     this.config = config;
@@ -22,6 +37,7 @@ export class AnimalEntity {
     const obj = factory({
       onLoaded: (group) => {
         this.addUpdatable(group);
+        this._modelGroup = group;
         group.rotation.y += THREE.MathUtils.degToRad(
           THREE.MathUtils.randFloat(-180, 180)
         );
@@ -35,7 +51,7 @@ export class AnimalEntity {
         this.addUpdatable(smoke);
 
         const delay = Math.random() * 0.3;
-        gsap.delayedCall(delay, () => {
+        this._spawnTween = gsap.delayedCall(delay, () => {
           gsap.to(group.scale, {
             x: 1,
             y: 1,
@@ -91,8 +107,7 @@ export class AnimalEntity {
           ui[feedUpdate]?.(state[feedType]);
 
           this.stored++;
-          if (this.stored >= (this.config.maxStorage ?? 3))
-            this.producing = false;
+          if (this.stored >= (this.config.maxStorage ?? 3)) this.producing = false;
         } else {
           this.producing = false;
         }
@@ -130,4 +145,25 @@ export class AnimalEntity {
     const { x, y } = cameraHelper.worldToScreen(headPos);
     ui.updateAnimalCounter(this.id, 0, x, y);
   }
+
+  dispose() {
+    this._spawnTween?.kill?.();
+    this._spawnTween = null;
+
+    if (this._modelGroup) {
+      gsap.killTweensOf(this._modelGroup.scale);
+      gsap.killTweensOf(this._modelGroup.position);
+      this.removeUpdatable?.(this._modelGroup);
+      this._modelGroup = null;
+    }
+
+    this.ui.removeAnimalCounter?.(this.id);
+
+    this.scene.remove(this.obj);
+    if (this.cell?.content === this.obj) {
+      this.cell.content = null;
+    }
+    disposeObject3D(this.obj);
+  }
 }
+
