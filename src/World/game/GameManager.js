@@ -5,7 +5,7 @@ import { FieldManager } from "./FieldManager.js";
 import { StructureManager } from "./StructureManager.js";
 import { EntityManager } from "./EntityManager.js";
 import { DayNightManager } from "./DayNightManager.js";
-import { SOUND_KEYS, SoundManager } from "../audio/SoundManager.js";
+import { SoundManager } from "../audio/SoundManager.js";
 import { gsap } from "gsap";
 
 const INTERACTION_CONFIG = {
@@ -220,7 +220,6 @@ export class GameManager {
       const entity = this.entities.entities.find((entry) => entry.id === id);
       if (entity) {
         this.entities.harvest(entity, this.state, this.ui);
-        SoundManager.instance.playSfx(SOUND_KEYS.HARVEST);
       }
     };
     document.addEventListener("click", this._onDocumentClick);
