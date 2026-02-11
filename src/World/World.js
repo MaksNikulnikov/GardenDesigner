@@ -8,6 +8,7 @@ import { createGround } from './components/ground/ground.js';
 import { GameManager } from './game/GameManager.js';
 import { cameraHelper } from './helpers/CameraHelper.js';
 import { AssetLoader } from "./assets/AssetLoader.js";
+import { PerfOverlay } from "./debug/PerfOverlay.js";
 
 function disposeSceneObject(root) {
   root.traverse?.((node) => {
@@ -39,6 +40,14 @@ class World {
     
     this.game = new GameManager(this.scene, this.camera, this.renderer, this.controls);
     this.loop.updatables.push(this.controls, this.game);
+    this.perfOverlay = null;
+
+    const debugEnabled =
+      import.meta.env.DEV || new URLSearchParams(window.location.search).has("debug");
+    if (debugEnabled) {
+      this.perfOverlay = new PerfOverlay({ renderer: this.renderer, game: this.game });
+      this.loop.updatables.push(this.perfOverlay);
+    }
 
     AssetLoader.preloadGLTF([
       "assets/models/placeholder.glb",
@@ -63,6 +72,7 @@ class World {
 
   dispose() {
     this.stop();
+    this.perfOverlay?.dispose?.();
     this.game?.dispose?.();
     this.resizer?.dispose?.();
     this.controls?.disposeWithListeners?.();
