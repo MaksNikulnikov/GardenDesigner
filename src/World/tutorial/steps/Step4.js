@@ -3,13 +3,16 @@ import { TutorialStep } from "../TutorialStep.js";
 export class Step4 extends TutorialStep {
   start() {
     const ui = this.manager.ui;
+    this._fieldSpotlightShown = false;
+    this._cameraFocused = false;
 
     ui.disableAllButtons?.();
     ui.enableButton("btn-build");
     ui.enableButton("sub-pen");
 
+    ui.removeHighlights();
     ui.highlightButton("btn-build");
-    ui.showHint("Now let's build a pen for your animals!", "build");
+    ui.showSpotlight("#btn-build");
 
     ui.onMenuOpened?.("build", () => this._onBuildMenuOpened());
 
@@ -21,7 +24,7 @@ export class Step4 extends TutorialStep {
     const ui = this.manager.ui;
     ui.removeHighlights();
     ui.highlightButton("sub-pen");
-    ui.showHint("Tap to place your animal pen", "pen");
+    ui.showSpotlight("#sub-pen");
   }
 
   update(delta) {
@@ -29,6 +32,15 @@ export class Step4 extends TutorialStep {
     const ui = this.manager.ui;
 
     this._timer += delta;
+
+    if (!this._fieldSpotlightShown && game.state.buildMode === "pen") {
+      this._fieldSpotlightShown = true;
+      ui.showSpotlight(() => game.getTutorialBuildRect("pen"));
+      if (!this._cameraFocused) {
+        this._cameraFocused = true;
+        game.focusTutorialCamera(game.getTutorialBuildFocusPoint("pen"));
+      }
+    }
 
     if (this._phase === "waitBuild") {
       const hasPen = game.field.fields.some((f) => f.structure?.type === "pen");
@@ -39,7 +51,7 @@ export class Step4 extends TutorialStep {
         ui.removeHighlights();
         ui.hideAllSubButtons?.();
         ui.disableAllButtons();
-        ui.showHint("Perfect! You’ve built your first animal pen!", "pen");
+        ui.hideSpotlight();
       }
       return;
     }
@@ -52,6 +64,7 @@ export class Step4 extends TutorialStep {
   complete() {
     const ui = this.manager.ui;
     ui.onMenuOpened?.("build", null);
+    ui.hideSpotlight();
     ui.hideHint();
   }
 }

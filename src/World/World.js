@@ -28,7 +28,7 @@ class World {
     const ground = createGround();
     scene.add(ground);
     
-    const game = new GameManager(scene, camera, renderer);
+    const game = new GameManager(scene, camera, renderer, controls);
     loop.updatables.push(controls, game);
   }
 

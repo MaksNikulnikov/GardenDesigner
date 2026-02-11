@@ -4,21 +4,20 @@ export class Step2 extends TutorialStep {
   constructor(manager) {
     super(manager);
     this.requiredCount = 3;
-    this._lastHintTime = 0;
-    this._hintInterval = 4000;
   }
 
   start() {
     const ui = this.manager.ui;
+    this._fieldSpotlightShown = false;
+    this._cameraFocused = false;
+
     ui.disableButton("btn-build");
     ui.enableButton("btn-plants");
     ui.enableButton("sub-corn");
 
+    ui.removeHighlights();
     ui.highlightButton("btn-plants");
-    ui.showHint(
-      "Now let's plant some corn!",
-      "corn"
-    );
+    ui.showSpotlight("#btn-plants");
 
     ui.onMenuOpened?.("plants", () => this._onPlantsMenuOpened());
   }
@@ -27,23 +26,28 @@ export class Step2 extends TutorialStep {
     const ui = this.manager.ui;
     ui.removeHighlights();
     ui.highlightButton("sub-corn");
-    ui.showHint("Choose Corn and plant it 3 times!", "corn");
+    ui.showSpotlight("#sub-corn");
   }
 
-  update(time, delta) {
-    const planted = this.manager.game.entities.entities.filter(
-      (e) => e.type === "corn"
-    ).length;
+  update() {
+    const game = this.manager.game;
+    const ui = this.manager.ui;
 
-    if (planted < this.requiredCount) {
-      const now = performance.now();
-      if (now - this._lastHintTime > this._hintInterval) {
-        const remaining = this.requiredCount - planted;
-        this.manager.ui.showHint(`Plant ${remaining} more corn`, "corn");
-        this._lastHintTime = now;
+    if (game.state.selectedItem === "corn") {
+      if (!this._fieldSpotlightShown) {
+        this._fieldSpotlightShown = true;
       }
-    } else {
-      this.manager.game.clearSelectedItem();
+      if (!this._cameraFocused) {
+        this._cameraFocused = true;
+        game.focusTutorialCamera(game.getTutorialPlantCellFocusPoint());
+      }
+      ui.showSpotlight(() => game.getTutorialPlantCellRect());
+    }
+
+    const planted = game.entities.entities.filter((e) => e.type === "corn").length;
+
+    if (planted >= this.requiredCount) {
+      game.clearSelectedItem();
       this.isComplete = true;
     }
   }
@@ -54,6 +58,6 @@ export class Step2 extends TutorialStep {
     ui.hideAllSubButtons?.();
     ui.disableAllButtons();
     ui.onMenuOpened?.("plants", null);
-    ui.showHint("Awesome! Now let’s wait for your corn to grow...");
+    ui.hideSpotlight();
   }
 }

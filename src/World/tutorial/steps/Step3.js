@@ -3,7 +3,7 @@ import { TutorialStep } from "../TutorialStep.js";
 export class Step3 extends TutorialStep {
   start() {
     const ui = this.manager.ui;
-    ui.showHint("Your corn is growing... just wait a bit!", "corn");
+    ui.hideSpotlight();
 
     this._phase = "waitGrow";
     this._harvestMessageShown = false;
@@ -18,8 +18,8 @@ export class Step3 extends TutorialStep {
       case "waitGrow": {
         const ready = game.entities.areAllCropsReady?.("corn");
         if (ready) {
-          ui.showHint("Your corn is ready to harvest! Tap it to collect!", "corn");
           game.entities.allowHarvest?.();
+          ui.showSpotlight(() => game.renderer?.domElement);
           this._phase = "harvest";
         }
         break;
@@ -29,7 +29,6 @@ export class Step3 extends TutorialStep {
         const anyCornLeft = game.entities.entities.some((e) => e.type === "corn");
         if (!anyCornLeft && !this._harvestMessageShown) {
           this._harvestMessageShown = true;
-          ui.showHint("Great job!", "corn");
           this._phase = "done";
           this._timer = 0;
         }
@@ -46,6 +45,7 @@ export class Step3 extends TutorialStep {
   }
 
   complete() {
+    this.manager.ui.hideSpotlight();
     this.manager.ui.hideHint?.();
   }
 }

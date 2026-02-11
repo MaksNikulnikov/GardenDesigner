@@ -8,16 +8,16 @@ export class Step5 extends TutorialStep {
 
   start() {
     const ui = this.manager.ui;
+    this._fieldSpotlightShown = false;
+    this._cameraFocused = false;
 
     ui.disableAllButtons?.();
     ui.enableButton("btn-animals");
     ui.enableButton("sub-chicken");
 
+    ui.removeHighlights();
     ui.highlightButton("btn-animals");
-    ui.showHint(
-      "Now let's add some chickens to your new pen!",
-      "animals"
-    );
+    ui.showSpotlight("#btn-animals");
 
     ui.onMenuOpened?.("animals", () => this._onAnimalsMenuOpened());
 
@@ -30,13 +30,24 @@ export class Step5 extends TutorialStep {
     const ui = this.manager.ui;
     ui.removeHighlights();
     ui.highlightButton("sub-chicken");
-    ui.showHint("Choose Chicken and place 5 in your pen", "chicken");
+    ui.showSpotlight("#sub-chicken");
   }
 
   update(delta) {
     const game = this.manager.game;
     const ui = this.manager.ui;
     this._timer += delta;
+
+    if (game.state.selectedItem === "chicken") {
+      if (!this._fieldSpotlightShown) {
+        this._fieldSpotlightShown = true;
+      }
+      if (!this._cameraFocused) {
+        this._cameraFocused = true;
+        game.focusTutorialCamera(game.getTutorialAnimalCellFocusPoint());
+      }
+      ui.showSpotlight(() => game.getTutorialAnimalCellRect());
+    }
 
     if (this._phase === "place") {
       const chickens = game.entities.entities.filter((e) => e.type === "chicken").length;
@@ -46,12 +57,7 @@ export class Step5 extends TutorialStep {
         this._lastCount = chickens;
 
         const remaining = this.requiredCount - chickens;
-        if (remaining > 0) {
-          ui.showHint(
-            `Good job! You placed ${chickens}/${this.requiredCount} chickens.\n${remaining} more to go!`,
-            "chicken"
-          );
-        } else {
+        if (remaining <= 0) {
           this._onAllChickensPlaced();
         }
       }
@@ -74,17 +80,13 @@ export class Step5 extends TutorialStep {
     ui.removeHighlights();
     ui.hideAllSubButtons?.();
     ui.disableAllButtons();
-
-    ui.showHint("Fantastic! You now have a whole flock!", "chicken");
-
-    setTimeout(() => {
-      ui.showHint("Your farm is growing fast!", "animals");
-    }, 1500);
+    ui.hideSpotlight();
   }
 
   complete() {
     const ui = this.manager.ui;
     ui.onMenuOpened?.("animals", null);
+    ui.hideSpotlight();
     ui.hideHint();
   }
 }

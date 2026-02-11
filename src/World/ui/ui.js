@@ -5,6 +5,8 @@ const UI_CONFIG = {
   CLICK_DEBOUNCE: 100, // minimum delay between click sounds (ms)
   DAY_SIGN_URL: "assets/images/sun.png",
   NIGHT_SIGN_URL: "assets/images/moon.png",
+  SPOTLIGHT_PADDING: 10,
+  SPOTLIGHT_RADIUS: 14,
 };
 
 /**
@@ -21,6 +23,16 @@ export class GameUI {
     this._menuOpenedCallbacks = {};
     this._animalCounters = {};
     this._lastClickSoundTime = 0;
+    this._spotlightTarget = null;
+    this._spotlightOptions = null;
+    this._spotlightRect = null;
+    this._spotlightBounceTimer = null;
+    this._spotlightHideTimer = null;
+    this._spotlightFrameId = null;
+    this._spotlightBounceRequested = false;
+    this._spotlightTrackDynamic = false;
+    this._spotlightMissingFrames = 0;
+    this._onResize = () => this._refreshSpotlight();
 
     this.ready = this._loadUI();
 
@@ -79,9 +91,18 @@ export class GameUI {
     });
 
     this.$hint = document.querySelector("#hint-box");
+    this.$tutorialOverlay = document.getElementById("tutorial-overlay");
+    this.$tutorialDims = {
+      top: document.getElementById("tutorial-dim-top"),
+      left: document.getElementById("tutorial-dim-left"),
+      right: document.getElementById("tutorial-dim-right"),
+      bottom: document.getElementById("tutorial-dim-bottom"),
+    };
+    this.$tutorialFocusRing = document.getElementById("tutorial-focus-ring");
 
     // Enable click sounds across all UI buttons
     this._setupClickSounds();
+    window.addEventListener("resize", this._onResize);
   }
 
   // ============================================================
@@ -238,6 +259,204 @@ export class GameUI {
     if (!this.$hint) return;
     clearTimeout(this._hintTimer);
     this.$hint.classList.add("hidden");
+  }
+
+  // ============================================================
+  // Spotlight tutorial overlay
+  // ============================================================
+  showSpotlight(
+    target,
+    { padding = UI_CONFIG.SPOTLIGHT_PADDING, radius = UI_CONFIG.SPOTLIGHT_RADIUS } = {}
+  ) {
+    clearTimeout(this._spotlightHideTimer);
+    const targetChanged = target !== this._spotlightTarget;
+    this._spotlightTarget = target;
+    this._spotlightOptions = { padding, radius };
+    this._spotlightTrackDynamic = this._isDynamicSpotlightTarget(target);
+    this._spotlightMissingFrames = 0;
+    if (targetChanged) this._spotlightBounceRequested = true;
+    if (!this.$tutorialOverlay) return;
+
+    this.$tutorialOverlay.classList.remove("hidden");
+    this._refreshSpotlight();
+    if (this._spotlightTrackDynamic) {
+      this._startSpotlightTracking();
+    } else {
+      this._stopSpotlightTracking();
+    }
+    requestAnimationFrame(() => {
+      this.$tutorialOverlay?.classList.add("active");
+    });
+  }
+
+  hideSpotlight() {
+    this._spotlightTarget = null;
+    this._spotlightOptions = null;
+    this._spotlightRect = null;
+    this._spotlightBounceRequested = false;
+    this._spotlightTrackDynamic = false;
+    this._spotlightMissingFrames = 0;
+    this._stopSpotlightTracking();
+    clearTimeout(this._spotlightBounceTimer);
+    clearTimeout(this._spotlightHideTimer);
+    if (!this.$tutorialOverlay) return;
+    this.$tutorialOverlay.classList.remove("active", "bounce");
+    this._spotlightHideTimer = setTimeout(() => {
+      this.$tutorialOverlay?.classList.add("hidden");
+    }, 260);
+  }
+
+  _refreshSpotlight() {
+    if (!this._spotlightTarget || !this.$tutorialOverlay) return;
+
+    const rect = this._resolveSpotlightRect(this._spotlightTarget);
+    if (!rect) {
+      this._spotlightMissingFrames += 1;
+      if (this._spotlightMissingFrames > 12) {
+        this.$tutorialOverlay.classList.remove("active", "bounce");
+      }
+      return;
+    }
+    this._spotlightMissingFrames = 0;
+
+    const { padding = UI_CONFIG.SPOTLIGHT_PADDING, radius = UI_CONFIG.SPOTLIGHT_RADIUS } =
+      this._spotlightOptions || {};
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const left = Math.max(0, rect.left - padding);
+    const top = Math.max(0, rect.top - padding);
+    const right = Math.min(vw, rect.right + padding);
+    const bottom = Math.min(vh, rect.bottom + padding);
+    const width = Math.max(0, right - left);
+    const height = Math.max(0, bottom - top);
+
+    if (width === 0 || height === 0) {
+      this._spotlightMissingFrames += 1;
+      return;
+    }
+
+    // Guard against projection glitches that can briefly produce huge invalid rects.
+    if (width > vw * 1.2 || height > vh * 1.2) {
+      return;
+    }
+
+    this._spotlightRect = {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+    };
+
+    this.$tutorialDims.top.style.left = "0px";
+    this.$tutorialDims.top.style.top = "0px";
+    this.$tutorialDims.top.style.width = `${vw}px`;
+    this.$tutorialDims.top.style.height = `${top}px`;
+
+    this.$tutorialDims.bottom.style.left = "0px";
+    this.$tutorialDims.bottom.style.top = `${bottom}px`;
+    this.$tutorialDims.bottom.style.width = `${vw}px`;
+    this.$tutorialDims.bottom.style.height = `${Math.max(0, vh - bottom)}px`;
+
+    this.$tutorialDims.left.style.left = "0px";
+    this.$tutorialDims.left.style.top = `${top}px`;
+    this.$tutorialDims.left.style.width = `${left}px`;
+    this.$tutorialDims.left.style.height = `${height}px`;
+
+    this.$tutorialDims.right.style.left = `${right}px`;
+    this.$tutorialDims.right.style.top = `${top}px`;
+    this.$tutorialDims.right.style.width = `${Math.max(0, vw - right)}px`;
+    this.$tutorialDims.right.style.height = `${height}px`;
+
+    this.$tutorialFocusRing.style.left = `${left}px`;
+    this.$tutorialFocusRing.style.top = `${top}px`;
+    this.$tutorialFocusRing.style.width = `${width}px`;
+    this.$tutorialFocusRing.style.height = `${height}px`;
+    this.$tutorialFocusRing.style.borderRadius = `${radius}px`;
+
+    if (this._spotlightBounceRequested) {
+      this._spotlightBounceRequested = false;
+      this._triggerSpotlightBounce();
+    }
+  }
+
+  _startSpotlightTracking() {
+    if (!this._spotlightTrackDynamic) return;
+    if (this._spotlightFrameId) return;
+    const tick = () => {
+      if (!this._spotlightTrackDynamic || !this._spotlightTarget || !this.$tutorialOverlay) {
+        this._spotlightFrameId = null;
+        return;
+      }
+      this._refreshSpotlight();
+      this._spotlightFrameId = requestAnimationFrame(tick);
+    };
+    this._spotlightFrameId = requestAnimationFrame(tick);
+  }
+
+  _stopSpotlightTracking() {
+    if (!this._spotlightFrameId) return;
+    cancelAnimationFrame(this._spotlightFrameId);
+    this._spotlightFrameId = null;
+  }
+
+  _resolveSpotlightRect(target) {
+    if (!target) return null;
+    const resolvedTarget = typeof target === "function" ? target() : target;
+    if (!resolvedTarget) return null;
+
+    if (typeof resolvedTarget === "string") {
+      const element = document.querySelector(resolvedTarget);
+      return element ? element.getBoundingClientRect() : null;
+    }
+
+    if (resolvedTarget instanceof Element) {
+      return resolvedTarget.getBoundingClientRect();
+    }
+
+    if (
+      typeof resolvedTarget === "object" &&
+      typeof resolvedTarget.left === "number" &&
+      typeof resolvedTarget.top === "number" &&
+      typeof resolvedTarget.right === "number" &&
+      typeof resolvedTarget.bottom === "number"
+    ) {
+      return resolvedTarget;
+    }
+
+    if (
+      typeof resolvedTarget === "object" &&
+      typeof resolvedTarget.x === "number" &&
+      typeof resolvedTarget.y === "number" &&
+      typeof resolvedTarget.width === "number" &&
+      typeof resolvedTarget.height === "number"
+    ) {
+      return {
+        left: resolvedTarget.x,
+        top: resolvedTarget.y,
+        right: resolvedTarget.x + resolvedTarget.width,
+        bottom: resolvedTarget.y + resolvedTarget.height,
+      };
+    }
+
+    return null;
+  }
+
+  _triggerSpotlightBounce() {
+    if (!this.$tutorialOverlay) return;
+    clearTimeout(this._spotlightBounceTimer);
+    this.$tutorialOverlay.classList.remove("bounce");
+    // Force reflow so animation can restart.
+    // eslint-disable-next-line no-unused-expressions
+    this.$tutorialOverlay.offsetWidth;
+    this.$tutorialOverlay.classList.add("bounce");
+    this._spotlightBounceTimer = setTimeout(() => {
+      this.$tutorialOverlay?.classList.remove("bounce");
+    }, 560);
+  }
+
+  _isDynamicSpotlightTarget(target) {
+    return typeof target === "function";
   }
 
   // ============================================================

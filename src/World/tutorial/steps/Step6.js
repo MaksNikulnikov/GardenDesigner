@@ -27,7 +27,7 @@ export class Step6 extends TutorialStep {
     ui.enableButton("sub-strawberry");
     ui.enableButton("sub-chicken");
 
-    ui.showHint("Now your chickens are laying eggs!", "eggs", { persist: true });
+    ui.showSpotlight(() => game.renderer?.domElement);
 
     // check egg count every second
     this._checkInterval = setInterval(() => {
@@ -41,7 +41,7 @@ export class Step6 extends TutorialStep {
   update(delta) {
     this._timer += delta;
 
-    // 🕒 If 30 seconds passed and player didn’t collect enough eggs
+    // If 30 seconds passed and player did not collect enough eggs
     if (this._timer > FAILSAFE_TIMEOUT && !this.isComplete) {
       this._completeTimeout();
     }
@@ -53,7 +53,7 @@ export class Step6 extends TutorialStep {
     clearInterval(this._checkInterval);
 
     const ui = this.manager.ui;
-    ui.showHint("You’re a real farmer! Great job!", "eggs");
+    ui.hideSpotlight();
     ui.showCTA("Download GardenMakeover!\n Continue building your amazing farm!");
   }
 
@@ -63,12 +63,13 @@ export class Step6 extends TutorialStep {
     clearInterval(this._checkInterval);
 
     const ui = this.manager.ui;
-    ui.showHint("You’re a real farmer! Great job!", "build");
+    ui.hideSpotlight();
     ui.showCTA("Download GardenMakeover!\n Continue building your amazing farm!");
   }
 
   complete() {
     clearInterval(this._checkInterval);
+    this.manager.ui.hideSpotlight();
     this.manager.ui.hideHint();
   }
 }
