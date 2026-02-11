@@ -1,4 +1,5 @@
 import { SOUND_KEYS, SoundManager } from "../audio/SoundManager";
+import { cameraHelper } from "../helpers/CameraHelper.js";
 
 const UI_CONFIG = {
   HINT_DURATION: 2000, // default hint display duration (ms)
@@ -7,6 +8,7 @@ const UI_CONFIG = {
   NIGHT_SIGN_URL: "assets/images/moon.png",
   SPOTLIGHT_PADDING: 10,
   SPOTLIGHT_RADIUS: 14,
+  RESOURCE_FLY_DURATION: 980,
 };
 
 /**
@@ -220,6 +222,90 @@ export class GameUI {
   updateEggs(value) {
     const el = document.getElementById("res-eggs");
     if (el) el.textContent = value;
+  }
+
+  animateResourceFly({ resourceType, fromWorldPosition, count = 1, icon = null }) {
+    const target = this._getResourceTarget(resourceType);
+    if (!target || !fromWorldPosition) return;
+
+    const start = cameraHelper.worldToScreen(fromWorldPosition);
+    if (!Number.isFinite(start.x) || !Number.isFinite(start.y)) return;
+
+    const maxCount = Math.max(1, Math.min(4, count));
+    const iconSrc = icon || this._getResourceIcon(resourceType);
+
+    for (let i = 0; i < maxCount; i++) {
+      const el = document.createElement("img");
+      el.className = "resource-fly-icon";
+      el.src = iconSrc;
+      el.alt = resourceType;
+
+      const jitterX = (Math.random() - 0.5) * 18;
+      const jitterY = (Math.random() - 0.5) * 14;
+      const startX = start.x + jitterX;
+      const startY = start.y + jitterY;
+      const targetX = target.x + (Math.random() - 0.5) * 10;
+      const targetY = target.y + (Math.random() - 0.5) * 8;
+
+      el.style.left = `${startX}px`;
+      el.style.top = `${startY}px`;
+      document.body.appendChild(el);
+
+      const delay = i * 70;
+      setTimeout(() => {
+        el.style.transition = `left ${UI_CONFIG.RESOURCE_FLY_DURATION}ms cubic-bezier(0.16, 0.84, 0.24, 1), top ${UI_CONFIG.RESOURCE_FLY_DURATION}ms cubic-bezier(0.16, 0.84, 0.24, 1), opacity ${UI_CONFIG.RESOURCE_FLY_DURATION}ms ease, transform ${UI_CONFIG.RESOURCE_FLY_DURATION}ms ease`;
+        el.style.left = `${targetX}px`;
+        el.style.top = `${targetY}px`;
+        el.style.opacity = "0";
+        el.style.transform = "translate(-50%, -50%) scale(0.4)";
+      }, delay);
+
+      setTimeout(() => {
+        el.remove();
+        if (i === maxCount - 1) this._pulseResourceTarget(resourceType);
+      }, delay + UI_CONFIG.RESOURCE_FLY_DURATION + 30);
+    }
+  }
+
+  _getResourceTarget(resourceType) {
+    const targetId =
+      resourceType === "corn"
+        ? "res-corn"
+        : resourceType === "eggs"
+          ? "res-eggs"
+          : resourceType === "coins"
+            ? "coin-amount"
+            : null;
+
+    if (!targetId) return null;
+    const valueNode = document.getElementById(targetId);
+    if (!valueNode) return null;
+    const container = valueNode.closest(".res-item") || valueNode;
+    const rect = container.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width * 0.5,
+      y: rect.top + rect.height * 0.5,
+      node: container,
+    };
+  }
+
+  _getResourceIcon(resourceType) {
+    if (resourceType === "corn") return "assets/images/corn.png";
+    if (resourceType === "eggs") return "assets/images/eggs.png";
+    if (resourceType === "coins") return "assets/images/money.png";
+    return "assets/images/money.png";
+  }
+
+  _pulseResourceTarget(resourceType) {
+    const target = this._getResourceTarget(resourceType);
+    const node = target?.node;
+    if (!node) return;
+    node.classList.remove("resource-hit");
+    // Force reflow to restart the animation.
+    // eslint-disable-next-line no-unused-expressions
+    node.offsetWidth;
+    node.classList.add("resource-hit");
+    setTimeout(() => node.classList.remove("resource-hit"), 320);
   }
 
   // ============================================================

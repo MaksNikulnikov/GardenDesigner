@@ -57,6 +57,11 @@ export class PlantEntity {
     const reward = this.config.reward;
 
     if (reward && typeof reward === "object" && reward.type) {
+      ui.animateResourceFly?.({
+        resourceType: reward.type,
+        fromWorldPosition: this.obj.position.clone(),
+        count: Math.min(reward.amount ?? 1, 4),
+      });
       state[reward.type] = (state[reward.type] ?? 0) + reward.amount;
       const methodName =
         "update" + reward.type.charAt(0).toUpperCase() + reward.type.slice(1);

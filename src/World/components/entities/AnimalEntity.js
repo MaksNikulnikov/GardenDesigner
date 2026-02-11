@@ -111,6 +111,11 @@ export class AnimalEntity {
     const reward = this.config.reward;
     if (reward && typeof reward === "object" && reward.type) {
       const total = reward.amount * this.stored;
+      ui.animateResourceFly?.({
+        resourceType: reward.type,
+        fromWorldPosition: this.obj.position.clone().add(new THREE.Vector3(0, 0.8, 0)),
+        count: Math.min(total, 4),
+      });
       state[reward.type] = (state[reward.type] ?? 0) + total;
       const methodName =
         "update" + reward.type.charAt(0).toUpperCase() + reward.type.slice(1);

@@ -482,6 +482,37 @@
   object-fit: contain;
 }
 
+.resource-fly-icon {
+  position: fixed;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 70;
+  opacity: 0.95;
+  transform: translate(-50%, -50%) scale(1);
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+}
+
+.resource-hit {
+  animation: resource-hit-pulse 300ms ease-out;
+}
+
+@keyframes resource-hit-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(255, 211, 120, 0);
+  }
+  55% {
+    transform: scale(1.08);
+    box-shadow: 0 0 16px rgba(255, 211, 120, 0.45);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(255, 211, 120, 0);
+  }
+}
+
 .main-btn.disabled,
 .sub-btn.disabled {
   opacity: 0.45 !important;
