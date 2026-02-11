@@ -9,7 +9,14 @@ export default defineConfig({
     assetsDir: "assets",
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks(id) {
+          if (id.includes("src/World/tutorial/")) return "tutorial";
+          if (id.includes("three/examples")) return "three-examples";
+          if (id.includes("node_modules/three")) return "three-core";
+          if (id.includes("node_modules/gsap")) return "animation-vendor";
+          if (id.includes("node_modules")) return "vendor";
+          return undefined;
+        },
       },
     },
   },

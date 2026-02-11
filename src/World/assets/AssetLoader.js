@@ -1,8 +1,11 @@
+import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 const gltfLoader = new GLTFLoader();
 const gltfCache = new Map();
+const textureLoader = new THREE.TextureLoader();
+const textureCache = new Map();
 
 function loadGLTF(path) {
   if (!gltfCache.has(path)) {
@@ -19,8 +22,19 @@ function instantiateGLTF(gltf) {
   return { scene, animations: gltf.animations ?? [] };
 }
 
+function loadTexture(path, { colorSpace } = {}) {
+  if (!textureCache.has(path)) {
+    const texture = textureLoader.load(path);
+    if (colorSpace !== undefined && texture.colorSpace !== undefined) {
+      texture.colorSpace = colorSpace;
+    }
+    textureCache.set(path, texture);
+  }
+  return textureCache.get(path);
+}
+
 export const AssetLoader = {
   loadGLTF,
   instantiateGLTF,
+  loadTexture,
 };
-

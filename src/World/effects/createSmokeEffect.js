@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { gsap } from "gsap";
+import { AssetLoader } from "../assets/AssetLoader.js";
 
 /**
  * Smoke effect used during building construction.
@@ -41,17 +42,12 @@ export function createSmokeEffect(
     yOffset = SMOKE_Y_OFFSET,
   } = {}
 ) {
-  const loader = new THREE.TextureLoader();
-
-  // Load both textures
-  const textureMain = loader.load("assets/images/smoke.png");
-  const textureAlpha = loader.load("assets/images/smoke_alpha.png");
-
-  // Ensure correct color space for PNGs
-  if (textureMain.colorSpace !== undefined)
-    textureMain.colorSpace = THREE.SRGBColorSpace;
-  if (textureAlpha.colorSpace !== undefined)
-    textureAlpha.colorSpace = THREE.SRGBColorSpace;
+  const textureMain = AssetLoader.loadTexture("assets/images/smoke.png", {
+    colorSpace: THREE.SRGBColorSpace,
+  });
+  const textureAlpha = AssetLoader.loadTexture("assets/images/smoke_alpha.png", {
+    colorSpace: THREE.SRGBColorSpace,
+  });
 
   // Group for both smoke layers
   const group = new THREE.Group();
