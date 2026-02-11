@@ -1,61 +1,65 @@
-# 🌿 Garden Designer
+﻿# Garden Designer
 
-**Garden Designer** is a small 3D casual farm prototype built with **Three.js + GSAP**.  
-Players can build gardens and animal pens, plant crops, feed animals, and harvest resources — all in a bright, low-poly world.
+Garden Designer is a 3D casual farm prototype built with Three.js and GSAP.
+Players build gardens and pens, plant crops, place animals, and harvest resources in a guided tutorial flow.
 
----
+## Features
+- Interactive 3D world with placement, growth, and harvest loops
+- Step-by-step onboarding tutorial with spotlight guidance
+- Day/night cycle with time acceleration
+- Resource UI, flying reward icons, and sound feedback
+- Mobile-aware camera and control tuning
 
-## 🧠 Features
-- Interactive 3D environment
-- Modular architecture with managers
-- Plants and animals simulation
-- Day/night lighting system
-- Animated UI with hints and tutorial
-- Sound and music integration
-- Responsive scaling (Resizer)
+## Architecture
+Core runtime is organized under `src/World`:
 
----
+- `World.js`: composition root (camera, renderer, loop, managers)
+- `systems/`: renderer, loop, controls, resize behavior
+- `game/`: gameplay managers (`GameManager`, entities, structures, interaction)
+- `components/`: 3D object factories and scene elements
+- `tutorial/`: tutorial manager and step state machine
+- `ui/`: UI bootstrap and overlay logic
 
-## 🧩 Project Structure
-```
-src/
-└── World/
-    ├── game/            # Core gameplay managers
-    ├── ui/              # UI system (HTML + logic)
-    ├── audio/           # Global sound controller
-    ├── components/      # Scene + 3D factories
-    ├── effects/         # GSAP/particle effects
-    ├── systems/         # Loop, renderer, controls
-    ├── config/          # Game and field parameters
-```
+## Performance Notes
+Implemented optimizations:
 
----
+- Shared GLTF cache and cloning through `AssetLoader`
+- Lazy-loaded tutorial module (separate chunk)
+- Vendor chunk split in Vite build config
+- Background preload of core models
+- Reduced hot-path allocations in camera/entity updates
+- Runtime perf overlay for FPS and render stats
 
-## 🚀 Getting Started
+Enable perf overlay:
+
+- Dev mode: shown automatically
+- Prod/preview: add `?debug=1` to URL
+
+## CI
+GitHub Actions workflow runs on push/PR:
+
+1. `npm ci`
+2. `npm run lint`
+3. `npm run build`
+
+Workflow file: `.github/workflows/ci.yml`
+
+## Getting Started
 ```bash
 npm install
 npm run dev
 ```
 
-Then open your local dev server (e.g. `http://localhost:5173` if using Vite).
+Build production bundle:
+```bash
+npm run build
+```
 
----
+## Tech Stack
+- Three.js
+- GSAP
+- Vite
+- Vanilla JavaScript (ES modules)
 
-## 🎮 Controls
-- 🖱️ Click to build, plant, or harvest
-- 🌞 Toggle day/night in the top-right corner
-- 🎵 Music starts after first interaction
-- 📲 CTA button triggers external action
-
----
-
-## 🛠️ Technology Stack
-- [Three.js](https://threejs.org/)
-- [GSAP](https://greensock.com/gsap/)
-- HTML / CSS / Vanilla JS
-- Modular ES6 architecture
-
----
-
-## 📜 License
-MIT © Garden Designer Team
+## License
+MIT
