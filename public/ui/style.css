@@ -154,7 +154,7 @@
   font-weight: 900;
   letter-spacing: 0.5px;
   box-shadow: 0 4px 10px rgba(255, 175, 60, 0.45);
-  animation: time-warp-spin 0.75s linear infinite;
+  animation: time-warp-pulse 0.9s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -169,10 +169,19 @@
     0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
-@keyframes time-warp-spin {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.08); }
-  100% { transform: rotate(360deg) scale(1); }
+@keyframes time-warp-pulse {
+  0% {
+    transform: scaleX(1) scaleY(1);
+  }
+  30% {
+    transform: scaleX(1.14) scaleY(0.9);
+  }
+  60% {
+    transform: scaleX(0.92) scaleY(1.1);
+  }
+  100% {
+    transform: scaleX(1) scaleY(1);
+  }
 }
 
 .main-buttons {
