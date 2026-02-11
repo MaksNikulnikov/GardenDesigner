@@ -62,6 +62,10 @@ export class EntityManager {
     this.isHarvestAllowed = true;
   }
 
+  disallowHarvest() {
+    this.isHarvestAllowed = false;
+  }
+
   harvest(entity, state, ui) {
     if (!this.isHarvestAllowed || !entity) return;
 

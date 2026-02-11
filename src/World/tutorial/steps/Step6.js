@@ -13,6 +13,7 @@ export class Step6 extends TutorialStep {
   start() {
     const ui = this.manager.ui;
     const game = this.manager.game;
+    this._cameraFocused = false;
 
     ui.disableAllButtons?.();
     ui.hideAllSubButtons?.();
@@ -27,7 +28,7 @@ export class Step6 extends TutorialStep {
     ui.enableButton("sub-strawberry");
     ui.enableButton("sub-chicken");
 
-    ui.showSpotlight(() => game.renderer?.domElement);
+    ui.showSpotlight(() => game.getTutorialEggHarvestCellRect());
 
     // check egg count every second
     this._checkInterval = setInterval(() => {
@@ -39,6 +40,16 @@ export class Step6 extends TutorialStep {
   }
 
   update(delta) {
+    const { game, ui } = this.manager;
+    ui.showSpotlight(() => game.getTutorialEggHarvestCellRect());
+    if (!this._cameraFocused) {
+      const focusPoint = game.getTutorialEggHarvestCellFocusPoint();
+      if (focusPoint) {
+        this._cameraFocused = true;
+        game.focusTutorialCamera(focusPoint);
+      }
+    }
+
     this._timer += delta;
 
     // If 30 seconds passed and player did not collect enough eggs

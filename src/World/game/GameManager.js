@@ -13,7 +13,8 @@ const INTERACTION_CONFIG = {
   CELL_PICK_RADIUS: 1.6,
   CELL_SNAP_RADIUS: 2.6,
   BUILD_SNAP_MARGIN: 1.35,
-  HARVEST_SNAP_RADIUS: 2.1,
+  HARVEST_SNAP_RADIUS_PLANT: 2.2,
+  HARVEST_SNAP_RADIUS_ANIMAL: 3.6,
 };
 
 export class GameManager {
@@ -44,6 +45,8 @@ export class GameManager {
     this._previewFieldMesh = null;
     this._previewCellGroup = null;
     this._previewPulse = 0;
+    this._previewResolvedCell = null;
+    this._previewResolvedField = null;
 
     this.field = new FieldManager(scene);
     this.structures = new StructureManager(scene, (fx) => this.addUpdatable(fx));
@@ -212,7 +215,11 @@ export class GameManager {
 
   _handleClick(point) {
     if (this.state.selectedItem) {
-      const targetCell = this._resolvePlacementCell(point, this.state.selectedItem);
+      const previewCell = this._previewResolvedCell;
+      const targetCell =
+        this._isCellValidForItem(previewCell, this.state.selectedItem)
+          ? previewCell
+          : this._resolvePlacementCell(point, this.state.selectedItem);
       if (targetCell) {
         this._handleCellClick(targetCell);
       }
@@ -235,7 +242,11 @@ export class GameManager {
     }
 
     if (this.state.buildMode) {
-      const field = this._resolveBuildField(point);
+      const previewField = this._previewResolvedField;
+      const field =
+        previewField && !previewField.structure
+          ? previewField
+          : this._resolveBuildField(point);
       if (!field || field.structure) return;
       this._buildStructure(field);
     }
@@ -371,15 +382,25 @@ export class GameManager {
 
   _findNearestHarvestableEntity(point) {
     let bestEntity = null;
-    let bestDist = Infinity;
+    let bestScore = Infinity;
 
     for (const entity of this.entities.entities) {
       if (!entity?.readyToHarvest || !entity?.cell?.position) continue;
 
-      const dist = entity.cell.position.distanceTo(point);
-      if (dist <= INTERACTION_CONFIG.HARVEST_SNAP_RADIUS && dist < bestDist) {
-        bestDist = dist;
-        bestEntity = entity;
+      const dx = entity.cell.position.x - point.x;
+      const dz = entity.cell.position.z - point.z;
+      const distXZ = Math.hypot(dx, dz);
+      const radius =
+        entity.kind === "animal"
+          ? INTERACTION_CONFIG.HARVEST_SNAP_RADIUS_ANIMAL
+          : INTERACTION_CONFIG.HARVEST_SNAP_RADIUS_PLANT;
+
+      if (distXZ <= radius) {
+        const score = distXZ / radius;
+        if (score < bestScore) {
+          bestScore = score;
+          bestEntity = entity;
+        }
       }
     }
 
@@ -502,10 +523,15 @@ export class GameManager {
   _setPreviewTarget(target) {
     if (!this._previewFieldMesh || !this._previewCellGroup) return;
     if (!target) {
+      this._previewResolvedCell = null;
+      this._previewResolvedField = null;
       this._previewFieldMesh.visible = false;
       this._previewCellGroup.visible = false;
       return;
     }
+
+    this._previewResolvedCell = target.cell ?? null;
+    this._previewResolvedField = target.field ?? null;
 
     if (target.kind === "field") {
       this._previewCellGroup.visible = false;
@@ -545,6 +571,7 @@ export class GameManager {
         kind: "field",
         position: field.position,
         scale: size,
+        field,
       });
       return;
     }
@@ -561,6 +588,7 @@ export class GameManager {
         position: cell.position,
         scale: 1,
         yOffset: cell.type === "plants" ? 1.0 : 0.75,
+        cell,
       });
       return;
     }
@@ -647,6 +675,44 @@ export class GameManager {
     const targetCell = cells.find((cell) => !cell.content);
     if (targetCell?.position?.clone) return targetCell.position.clone();
     return gardenField?.position?.clone?.() ?? null;
+  }
+
+  getTutorialHarvestCellRect(type = "corn") {
+    const entity = this.entities.entities.find(
+      (entry) => entry.type === type && entry.readyToHarvest && entry.cell?.position
+    );
+    if (!entity?.cell) return null;
+    return this._getCellScreenRect(entity.cell);
+  }
+
+  getTutorialHarvestCellFocusPoint(type = "corn") {
+    const entity = this.entities.entities.find(
+      (entry) => entry.type === type && entry.readyToHarvest && entry.cell?.position
+    );
+    return entity?.cell?.position?.clone?.() ?? null;
+  }
+
+  getTutorialEggHarvestCellRect() {
+    const entity = this.entities.entities.find(
+      (entry) =>
+        entry.kind === "animal" &&
+        entry.readyToHarvest &&
+        entry.config?.reward?.type === "eggs" &&
+        entry.cell?.position
+    );
+    if (!entity?.cell) return null;
+    return this._getCellScreenRect(entity.cell);
+  }
+
+  getTutorialEggHarvestCellFocusPoint() {
+    const entity = this.entities.entities.find(
+      (entry) =>
+        entry.kind === "animal" &&
+        entry.readyToHarvest &&
+        entry.config?.reward?.type === "eggs" &&
+        entry.cell?.position
+    );
+    return entity?.cell?.position?.clone?.() ?? null;
   }
 
   getTutorialAnimalCellRect() {
