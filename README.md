@@ -41,6 +41,7 @@ GitHub Actions workflow runs on push/PR:
 1. `npm ci`
 2. `npm run lint`
 3. `npm run build`
+4. `npm run test:e2e`
 
 Workflow file: `.github/workflows/ci.yml`
 
@@ -55,6 +56,23 @@ Build production bundle:
 npm run build
 ```
 
+Run end-to-end tests:
+```bash
+npm run test:e2e
+```
+
+Run e2e in headed mode:
+```bash
+npm run test:e2e:headed
+```
+
+## Test Coverage
+Current Playwright e2e suite validates:
+
+- app bootstrapping and debug hooks availability
+- core tutorial/gameplay flow (build + plant + CTA reachability)
+- harvest edge case: clicking chicken counter does not grant eggs when not ready
+
 ## Tech Stack
 - Three.js
 - GSAP
@@ -63,3 +81,5 @@ npm run build
 
 ## License
 MIT
+
+Copyright (c) Maksim Nikulnikov
