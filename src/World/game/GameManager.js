@@ -51,6 +51,13 @@ export class GameManager {
     this.interaction = null;
     this._isDisposed = false;
     this._tutorialModulePromise = import("../tutorial/TutorialManager.js");
+    this._tmpCameraSpace = new THREE.Vector3();
+    this._tmpProjected = new THREE.Vector3();
+    this._tmpFocusTarget = new THREE.Vector3();
+    this._tmpCurrentOffset = new THREE.Vector3();
+    this._tmpSpherical = new THREE.Spherical();
+    this._tmpSphericalUpdate = new THREE.Spherical();
+    this._tmpSphericalOffset = new THREE.Vector3();
 
     this.field = new FieldManager(scene);
     this.structures = new StructureManager(scene, (fx) => this.addUpdatable(fx));
@@ -874,14 +881,14 @@ export class GameManager {
     let maxY = -Infinity;
 
     for (const point of points) {
-      const cameraSpace = point.clone().applyMatrix4(this.camera.matrixWorldInverse);
-      if (cameraSpace.z > -0.05) {
+      this._tmpCameraSpace.copy(point).applyMatrix4(this.camera.matrixWorldInverse);
+      if (this._tmpCameraSpace.z > -0.05) {
         return null;
       }
 
-      const projected = point.clone().project(this.camera);
-      const x = canvasRect.left + (projected.x * 0.5 + 0.5) * canvasRect.width;
-      const y = canvasRect.top + (-projected.y * 0.5 + 0.5) * canvasRect.height;
+      this._tmpProjected.copy(point).project(this.camera);
+      const x = canvasRect.left + (this._tmpProjected.x * 0.5 + 0.5) * canvasRect.width;
+      const y = canvasRect.top + (-this._tmpProjected.y * 0.5 + 0.5) * canvasRect.height;
 
       minX = Math.min(minX, x);
       maxX = Math.max(maxX, x);
@@ -927,19 +934,21 @@ export class GameManager {
     if (!this.controls || !worldPosition) return;
 
     const controls = this.controls;
-    const target = worldPosition.clone
-      ? worldPosition.clone()
-      : new THREE.Vector3(worldPosition.x ?? 0, worldPosition.y ?? 0, worldPosition.z ?? 0);
+    this._tmpFocusTarget.set(
+      worldPosition.x ?? 0,
+      worldPosition.y ?? 0,
+      worldPosition.z ?? 0
+    );
 
-    const currentOffset = this.camera.position.clone().sub(controls.target);
-    const currentSpherical = new THREE.Spherical().setFromVector3(currentOffset);
+    this._tmpCurrentOffset.copy(this.camera.position).sub(controls.target);
+    this._tmpSpherical.setFromVector3(this._tmpCurrentOffset);
 
     const minPolar = controls.minPolarAngle ?? Math.PI / 4;
     const maxPolar = controls.maxPolarAngle ?? Math.PI / 2;
     const desiredPhi = Math.max(minPolar, Math.min(maxPolar, minPolar + 0.03));
     const desiredRadius = Math.max(
-      controls.minDistance ?? currentSpherical.radius,
-      Math.min(controls.maxDistance ?? currentSpherical.radius, currentSpherical.radius)
+      controls.minDistance ?? this._tmpSpherical.radius,
+      Math.min(controls.maxDistance ?? this._tmpSpherical.radius, this._tmpSpherical.radius)
     );
 
     this._cameraTween?.kill?.();
@@ -949,29 +958,29 @@ export class GameManager {
       tx: controls.target.x,
       ty: controls.target.y,
       tz: controls.target.z,
-      radius: currentSpherical.radius,
-      phi: currentSpherical.phi,
-      theta: currentSpherical.theta,
+      radius: this._tmpSpherical.radius,
+      phi: this._tmpSpherical.phi,
+      theta: this._tmpSpherical.theta,
     };
 
     this._cameraTween = gsap.to(tweenState, {
-      tx: target.x,
-      ty: Math.max(0, target.y),
-      tz: target.z,
+      tx: this._tmpFocusTarget.x,
+      ty: Math.max(0, this._tmpFocusTarget.y),
+      tz: this._tmpFocusTarget.z,
       radius: desiredRadius,
       phi: desiredPhi,
-      theta: currentSpherical.theta,
+      theta: this._tmpSpherical.theta,
       duration: 0.9,
       ease: "power2.out",
       onUpdate: () => {
         controls.target.set(tweenState.tx, tweenState.ty, tweenState.tz);
-        const spherical = new THREE.Spherical(
+        this._tmpSphericalUpdate.set(
           tweenState.radius,
           tweenState.phi,
           tweenState.theta
         );
-        const offset = new THREE.Vector3().setFromSpherical(spherical);
-        this.camera.position.copy(controls.target).add(offset);
+        this._tmpSphericalOffset.setFromSpherical(this._tmpSphericalUpdate);
+        this.camera.position.copy(controls.target).add(this._tmpSphericalOffset);
         this.camera.lookAt(controls.target);
         controls.update();
       },

@@ -17,6 +17,10 @@ function disposeObject3D(root) {
   });
 }
 
+const HEAD_OFFSET = new THREE.Vector3(0, 1.6, 0);
+const HARVEST_HEAD_OFFSET = new THREE.Vector3(0, 0.6, 0);
+const FLY_OFFSET = new THREE.Vector3(0, 0.8, 0);
+
 export class AnimalEntity {
   constructor(scene, cell, type, factory, addUpdatable, removeUpdatable, ui, state) {
     this.id = Math.random().toString(36).slice(2);
@@ -30,6 +34,8 @@ export class AnimalEntity {
     this.state = state;
     this._spawnTween = null;
     this._modelGroup = null;
+    this._tmpWorldPos = new THREE.Vector3();
+    this._tmpScreenPos = { x: 0, y: 0 };
 
     const config = GAME_CONFIG.ITEMS[type];
     this.config = config;
@@ -80,10 +86,8 @@ export class AnimalEntity {
     this.productionCooldown = 0;
     this.readyToHarvest = false;
 
-    const headPos = obj.position.clone().add(new THREE.Vector3(0, 1.6, 0));
-    const { x, y } = cameraHelper.worldToScreen(headPos);
     ui.createAnimalCounter(this.id, type);
-    ui.updateAnimalCounter(this.id, 0, x, y);
+    this._updateCounter(ui, 0, HEAD_OFFSET);
   }
 
   tick(delta, state, ui) {
@@ -114,9 +118,7 @@ export class AnimalEntity {
       }
     }
 
-    const headPos = this.obj.position.clone().add(new THREE.Vector3(0, 1.6, 0));
-    const { x, y } = cameraHelper.worldToScreen(headPos);
-    ui.updateAnimalCounter(this.id, this.stored, x, y);
+    this._updateCounter(ui, this.stored, HEAD_OFFSET);
   }
 
   harvest(state, ui) {
@@ -126,9 +128,10 @@ export class AnimalEntity {
     const reward = this.config.reward;
     if (reward && typeof reward === "object" && reward.type) {
       const total = reward.amount * this.stored;
+      const flyStart = this._tmpWorldPos.copy(this.obj.position).add(FLY_OFFSET);
       ui.animateResourceFly?.({
         resourceType: reward.type,
-        fromWorldPosition: this.obj.position.clone().add(new THREE.Vector3(0, 0.8, 0)),
+        fromWorldPosition: flyStart,
         count: Math.min(total, 4),
       });
       state[reward.type] = (state[reward.type] ?? 0) + total;
@@ -141,9 +144,13 @@ export class AnimalEntity {
     this.producing = true;
     this.readyToHarvest = false;
 
-    const headPos = this.obj.position.clone().add(new THREE.Vector3(0, 0.6, 0));
-    const { x, y } = cameraHelper.worldToScreen(headPos);
-    ui.updateAnimalCounter(this.id, 0, x, y);
+    this._updateCounter(ui, 0, HARVEST_HEAD_OFFSET);
+  }
+
+  _updateCounter(ui, value, offset) {
+    this._tmpWorldPos.copy(this.obj.position).add(offset);
+    const screen = cameraHelper.worldToScreen(this._tmpWorldPos, this._tmpScreenPos);
+    ui.updateAnimalCounter(this.id, value, screen.x, screen.y);
   }
 
   dispose() {
@@ -166,4 +173,3 @@ export class AnimalEntity {
     disposeObject3D(this.obj);
   }
 }
-
