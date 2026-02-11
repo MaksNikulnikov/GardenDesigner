@@ -9,6 +9,13 @@ import { TutorialManager } from "../tutorial/TutorialManager.js";
 import { SOUND_KEYS, SoundManager } from "../audio/SoundManager.js";
 import { gsap } from "gsap";
 
+const INTERACTION_CONFIG = {
+  CELL_PICK_RADIUS: 1.6,
+  CELL_SNAP_RADIUS: 2.6,
+  BUILD_SNAP_MARGIN: 1.35,
+  HARVEST_SNAP_RADIUS: 2.1,
+};
+
 export class GameManager {
   constructor(scene, camera, renderer, controls = null) {
     this.scene = scene;
@@ -20,9 +27,9 @@ export class GameManager {
       coins: GAME_CONFIG.INITIAL_COINS,
       corn: 0,
       eggs: 0,
-      selectedCategory: null, // "plants" | "animals"
-      selectedItem: null, // corn, tomato, chicken...
-      buildMode: null, // "garden" | "pen"
+      selectedCategory: null,
+      selectedItem: null,
+      buildMode: null,
     };
 
     this.clock = new THREE.Clock();
@@ -34,39 +41,35 @@ export class GameManager {
       gardenField: null,
       penField: null,
     };
-    // --- Managers ---
+    this._previewFieldMesh = null;
+    this._previewCellGroup = null;
+    this._previewPulse = 0;
+
     this.field = new FieldManager(scene);
-    this.structures = new StructureManager(scene, (fx) =>
-      this.addUpdatable(fx)
-    );
+    this.structures = new StructureManager(scene, (fx) => this.addUpdatable(fx));
     this.entities = new EntityManager(
       scene,
       (obj) => this.addUpdatable(obj),
       this.camera
     );
 
-    // --- Create placeholders ---
     for (const field of this.field.fields) {
       const ph = this.structures.createPlaceholder(field);
       field.placeholder = ph.placeholder;
     }
 
-    // --- UI ---
     this.ui = new GameUI({
       onBuildModeSelect: (type) => this._startBuildMode(type),
       onCategorySelect: (category) => this._onCategorySelect(category),
       onItemSelect: (item) => this._onItemSelect(item),
     });
 
-    // --- Scene click handling ---
     this._setupSceneClick();
+    this._initInteractionPreview();
 
-    // --- Tutorial ---
     this.tutorial = new TutorialManager(this.ui, this);
-
     this.dayNight = new DayNightManager(scene, this.ui);
 
-    // --- Audio ---
     this._initAudio();
 
     this.ui.ready.then(() => {
@@ -79,13 +82,9 @@ export class GameManager {
     });
   }
 
-  // ========================
-  // 🔊 Audio
-  // ========================
   _initAudio() {
     const sound = SoundManager.instance;
 
-    // ждём первый клик
     document.addEventListener(
       "pointerdown",
       async () => {
@@ -101,9 +100,6 @@ export class GameManager {
     );
   }
 
-  // ========================
-  // 🔁 Generic update hooks
-  // ========================
   addUpdatable(obj) {
     if (obj && typeof obj.tick === "function") this.updatables.push(obj);
   }
@@ -114,75 +110,69 @@ export class GameManager {
 
   clearSelectedItem() {
     this.state.selectedItem = null;
+    this._setPreviewTarget(null);
   }
 
-  // ========================
-  // 🧭 Category selection
-  // ========================
   _onCategorySelect(category) {
     this.state.selectedCategory = category;
     this.state.selectedItem = null;
+    this._setPreviewTarget(null);
   }
 
   _onItemSelect(item) {
     this.state.selectedItem = item;
+    this._setPreviewTarget(null);
   }
 
-  // ========================
-  // 🏗️ Build Mode
-  // ========================
   _startBuildMode(type) {
     this.state.buildMode = type;
+    this._setPreviewTarget(null);
   }
 
-  // ========================
-  // 🖱️ Click handling
-  // ========================
   _setupSceneClick() {
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
     this.renderer.domElement.addEventListener("pointerdown", (event) => {
-      const rect = this.renderer.domElement.getBoundingClientRect();
-      this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-      this.raycaster.setFromCamera(this.pointer, this.camera);
-
-      // 🟢 click on any entity (plants / animals)
-      const allMeshes = [];
-      for (const e of this.entities.entities) {
-        e.obj.traverse((child) => {
-          if (child.isMesh) allMeshes.push(child);
-        });
-      }
-
-      const hits = this.raycaster.intersectObjects(allMeshes, true);
-      if (hits.length > 0) {
-        let hit = hits[0].object;
-        let foundId = null;
-
-        while (hit && !foundId) {
-          if (hit.userData?.entityId) foundId = hit.userData.entityId;
-          hit = hit.parent;
-        }
-
-        if (foundId) {
-          const entity = this.entities.entities.find((e) => e.id === foundId);
-          if (entity) {
-            this.entities.harvest(entity, this.state, this.ui);
-            return;
-          }
-        }
-      }
-
-      // 🟡 fallback: click on field
-      const point = new THREE.Vector3();
-      this.raycaster.ray.intersectPlane(plane, point);
+      const point = this._getPointerPointOnGround(event, plane);
       if (!point) return;
+
+      if (this.state.selectedItem || this.state.buildMode) {
+        this._handleClick(point);
+        return;
+      }
+
+      const hitEntity = this._pickEntityFromRaycast();
+      if (hitEntity) {
+        this.entities.harvest(hitEntity, this.state, this.ui);
+        return;
+      }
+
+      const nearestHarvestable = this._findNearestHarvestableEntity(point);
+      if (nearestHarvestable) {
+        this.entities.harvest(nearestHarvestable, this.state, this.ui);
+        return;
+      }
+
       this._handleClick(point);
     });
 
-    // 🟣 click on UI counters
+    this.renderer.domElement.addEventListener("pointermove", (event) => {
+      if (!this.state.selectedItem && !this.state.buildMode) {
+        this._setPreviewTarget(null);
+        return;
+      }
+      const point = this._getPointerPointOnGround(event, plane);
+      if (!point) {
+        this._setPreviewTarget(null);
+        return;
+      }
+      this._updateInteractionPreview(point);
+    });
+
+    this.renderer.domElement.addEventListener("pointerleave", () => {
+      this._setPreviewTarget(null);
+    });
+
     document.addEventListener("click", (e) => {
       const target = e.target;
       if (!target) return;
@@ -190,7 +180,7 @@ export class GameManager {
       const el = target.closest("[data-animal-id]");
       if (!el) return;
       const id = el.dataset.animalId;
-      const entity = this.entities.entities.find((e) => e.id === id);
+      const entity = this.entities.entities.find((entry) => entry.id === id);
       if (entity) {
         this.entities.harvest(entity, this.state, this.ui);
         SoundManager.instance.playSfx(SOUND_KEYS.HARVEST);
@@ -198,39 +188,79 @@ export class GameManager {
     });
   }
 
+  _pickEntityFromRaycast() {
+    const allMeshes = [];
+    for (const entity of this.entities.entities) {
+      entity.obj.traverse((child) => {
+        if (child.isMesh) allMeshes.push(child);
+      });
+    }
+
+    const hits = this.raycaster.intersectObjects(allMeshes, true);
+    if (hits.length === 0) return null;
+
+    let hit = hits[0].object;
+    let foundId = null;
+    while (hit && !foundId) {
+      if (hit.userData?.entityId) foundId = hit.userData.entityId;
+      hit = hit.parent;
+    }
+
+    if (!foundId) return null;
+    return this.entities.entities.find((entry) => entry.id === foundId) || null;
+  }
+
   _handleClick(point) {
-    // 1️⃣ Check if a cell was clicked
-    const cell = this._getClickedCell(point);
-    if (cell) {
-      this._handleCellClick(cell);
+    if (this.state.selectedItem) {
+      const targetCell = this._resolvePlacementCell(point, this.state.selectedItem);
+      if (targetCell) {
+        this._handleCellClick(targetCell);
+      }
       return;
     }
 
-    // 2️⃣ Check if building mode is active
+    const clickedCell = this._getClickedCell(point, INTERACTION_CONFIG.CELL_PICK_RADIUS);
+    if (clickedCell) {
+      const targetEntity = this.entities.getEntityByCell(clickedCell);
+      if (targetEntity?.readyToHarvest) {
+        this.entities.harvest(targetEntity, this.state, this.ui);
+        return;
+      }
+    }
+
+    const nearestHarvestable = this._findNearestHarvestableEntity(point);
+    if (nearestHarvestable) {
+      this.entities.harvest(nearestHarvestable, this.state, this.ui);
+      return;
+    }
+
     if (this.state.buildMode) {
-      const field = this.field.getFieldByPosition(point);
+      const field = this._resolveBuildField(point);
       if (!field || field.structure) return;
       this._buildStructure(field);
-      return;
     }
   }
 
-  _getClickedCell(point) {
+  _getClickedCell(point, maxDistance = INTERACTION_CONFIG.CELL_PICK_RADIUS) {
+    let bestCell = null;
+    let bestDistance = Infinity;
+
     for (const field of this.field.fields) {
       const structure = field.structure;
       if (!structure) continue;
 
       for (const cell of structure.cells) {
         const dist = cell.position.distanceTo(point);
-        if (dist < 1) return cell;
+        if (dist <= maxDistance && dist < bestDistance) {
+          bestDistance = dist;
+          bestCell = cell;
+        }
       }
     }
-    return null;
+
+    return bestCell;
   }
 
-  // ========================
-  // 🏡 Build logic
-  // ========================
   _buildStructure(field) {
     const mode = this.state.buildMode;
     if (!mode) return;
@@ -254,59 +284,305 @@ export class GameManager {
     this.ui.hideHint();
 
     this.state.buildMode = null;
+    this._setPreviewTarget(null);
   }
 
-  // ========================
-  // 🌿 / 🐔 Gameplay actions
-  // ========================
   _handleCellClick(cell) {
     const item = this.entities.getEntityByCell(cell);
 
     if (!cell.content && this.state.selectedItem && cell.type === "plants") {
-      this.entities.plantOrSpawn(
-        cell,
-        this.state.selectedItem,
-        this.state,
-        this.ui
-      );
+      this.entities.plantOrSpawn(cell, this.state.selectedItem, this.state, this.ui);
       return;
     }
 
     if (this.state.selectedItem && cell.type === "animals") {
       if (!cell.content) {
+        this.entities.plantOrSpawn(cell, this.state.selectedItem, this.state, this.ui);
+        return;
+      }
+
+      const emptyCellOnTheSameField = cell.field.structure.cells.find(
+        (entry) => !entry.content
+      );
+      if (emptyCellOnTheSameField) {
         this.entities.plantOrSpawn(
-          cell,
+          emptyCellOnTheSameField,
           this.state.selectedItem,
           this.state,
           this.ui
         );
         return;
-      } else {
-        const emptyCellOnTheSameField = cell.field.structure.cells.find(
-          (cell) => !cell.content
-        );
-        if (emptyCellOnTheSameField) {
-          this.entities.plantOrSpawn(
-            emptyCellOnTheSameField,
-            this.state.selectedItem,
-            this.state,
-            this.ui
-          );
-          return;
-        }
       }
     }
 
-    // Harvest ready crops
     if (item && item.readyToHarvest) {
       this.entities.harvest(item, this.state, this.ui);
     }
   }
 
-  // ========================
-  // ⏱️ Game Loop
-  // ========================
+  _resolvePlacementCell(point, itemType) {
+    const itemConfig = GAME_CONFIG.ITEMS[itemType];
+    const category = itemConfig?.category;
+    if (!category) return null;
+    const cellType = category === "plants" ? "plants" : "animals";
+
+    const directCell = this._getClickedCell(point, INTERACTION_CONFIG.CELL_PICK_RADIUS);
+    if (this._isCellValidForItem(directCell, itemType)) {
+      return directCell;
+    }
+
+    return this._findNearestValidCell(point, itemType, {
+      cellType,
+      maxDistance: INTERACTION_CONFIG.CELL_SNAP_RADIUS,
+    });
+  }
+
+  _isCellValidForItem(cell, itemType) {
+    if (!cell || cell.content) return false;
+    const config = GAME_CONFIG.ITEMS[itemType];
+    if (!config) return false;
+    if (config.category === "plants") return cell.type === "plants";
+    if (config.category === "animals") return cell.type === "animals";
+    return false;
+  }
+
+  _findNearestValidCell(point, itemType, { cellType, maxDistance }) {
+    let bestCell = null;
+    let bestDist = Infinity;
+
+    for (const field of this.field.fields) {
+      const structure = field.structure;
+      if (!structure) continue;
+
+      for (const cell of structure.cells) {
+        if (cell.type !== cellType) continue;
+        if (!this._isCellValidForItem(cell, itemType)) continue;
+
+        const dist = cell.position.distanceTo(point);
+        if (dist <= maxDistance && dist < bestDist) {
+          bestDist = dist;
+          bestCell = cell;
+        }
+      }
+    }
+
+    return bestCell;
+  }
+
+  _findNearestHarvestableEntity(point) {
+    let bestEntity = null;
+    let bestDist = Infinity;
+
+    for (const entity of this.entities.entities) {
+      if (!entity?.readyToHarvest || !entity?.cell?.position) continue;
+
+      const dist = entity.cell.position.distanceTo(point);
+      if (dist <= INTERACTION_CONFIG.HARVEST_SNAP_RADIUS && dist < bestDist) {
+        bestDist = dist;
+        bestEntity = entity;
+      }
+    }
+
+    return bestEntity;
+  }
+
+  _resolveBuildField(point) {
+    const exactField = this.field.getFieldByPosition(point);
+    if (exactField && !exactField.structure) return exactField;
+
+    let bestField = null;
+    let bestDist = Infinity;
+    for (const field of this.field.fields) {
+      if (field.structure) continue;
+      const dist = this._distanceToField(point, field);
+      if (dist <= INTERACTION_CONFIG.BUILD_SNAP_MARGIN && dist < bestDist) {
+        bestDist = dist;
+        bestField = field;
+      }
+    }
+
+    return bestField;
+  }
+
+  _distanceToField(point, field) {
+    const localPoint = this._worldToFieldLocal(point, field);
+    const dx = Math.max(field.bounds.min.x - localPoint.x, 0, localPoint.x - field.bounds.max.x);
+    const dz = Math.max(field.bounds.min.y - localPoint.y, 0, localPoint.y - field.bounds.max.y);
+    return Math.hypot(dx, dz);
+  }
+
+  _worldToFieldLocal(point, field) {
+    const deltaX = point.x - field.position.x;
+    const deltaZ = point.z - field.position.z;
+    const cos = Math.cos(-field.rotationY);
+    const sin = Math.sin(-field.rotationY);
+    return new THREE.Vector2(
+      deltaX * cos - deltaZ * sin,
+      deltaX * sin + deltaZ * cos
+    );
+  }
+
+  _getPointerPointOnGround(event, plane) {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+
+    const point = new THREE.Vector3();
+    const hit = this.raycaster.ray.intersectPlane(plane, point);
+    return hit ? point : null;
+  }
+
+  _initInteractionPreview() {
+    const fieldRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.55, 0.76, 32),
+      new THREE.MeshBasicMaterial({
+        color: 0xffe17a,
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide,
+        depthTest: false,
+        depthWrite: false,
+      })
+    );
+    fieldRing.rotation.x = -Math.PI / 2;
+    fieldRing.position.set(0, 0.08, 0);
+    fieldRing.visible = false;
+    fieldRing.renderOrder = 30;
+    this.scene.add(fieldRing);
+    this._previewFieldMesh = fieldRing;
+
+    const cellGroup = new THREE.Group();
+
+    const halo = new THREE.Mesh(
+      new THREE.TorusGeometry(0.45, 0.06, 12, 32),
+      new THREE.MeshBasicMaterial({
+        color: 0xfff3a8,
+        transparent: true,
+        opacity: 0.95,
+        depthTest: false,
+        depthWrite: false,
+      })
+    );
+    halo.rotation.x = -Math.PI / 2;
+
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.03, 0.6, 10),
+      new THREE.MeshBasicMaterial({
+        color: 0xffd676,
+        transparent: true,
+        opacity: 0.65,
+        depthTest: false,
+        depthWrite: false,
+      })
+    );
+    stem.position.y = -0.34;
+
+    const cap = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 10, 10),
+      new THREE.MeshBasicMaterial({
+        color: 0xffe17a,
+        transparent: true,
+        opacity: 0.9,
+        depthTest: false,
+        depthWrite: false,
+      })
+    );
+    cap.position.y = 0.04;
+
+    cellGroup.add(halo, stem, cap);
+    cellGroup.visible = false;
+    cellGroup.renderOrder = 31;
+    cellGroup.userData.baseY = 0;
+    cellGroup.userData.baseScale = 1;
+    this.scene.add(cellGroup);
+    this._previewCellGroup = cellGroup;
+  }
+
+  _setPreviewTarget(target) {
+    if (!this._previewFieldMesh || !this._previewCellGroup) return;
+    if (!target) {
+      this._previewFieldMesh.visible = false;
+      this._previewCellGroup.visible = false;
+      return;
+    }
+
+    if (target.kind === "field") {
+      this._previewCellGroup.visible = false;
+      this._previewFieldMesh.visible = true;
+      this._previewFieldMesh.position.copy(target.position);
+      this._previewFieldMesh.position.y = target.position.y + 0.08;
+      this._previewFieldMesh.scale.set(target.scale, target.scale, target.scale);
+      return;
+    }
+
+    this._previewFieldMesh.visible = false;
+    this._previewCellGroup.visible = true;
+    this._previewCellGroup.userData.baseY = target.position.y + (target.yOffset ?? 0.9);
+    this._previewCellGroup.userData.baseScale = target.scale ?? 1;
+    this._previewCellGroup.position.set(
+      target.position.x,
+      this._previewCellGroup.userData.baseY,
+      target.position.z
+    );
+    this._previewCellGroup.scale.set(
+      this._previewCellGroup.userData.baseScale,
+      this._previewCellGroup.userData.baseScale,
+      this._previewCellGroup.userData.baseScale
+    );
+  }
+
+  _updateInteractionPreview(point) {
+    if (this.state.buildMode) {
+      const field = this._resolveBuildField(point);
+      if (!field) {
+        this._setPreviewTarget(null);
+        return;
+      }
+
+      const size = Math.max(field.size.x, field.size.z) * 0.32;
+      this._setPreviewTarget({
+        kind: "field",
+        position: field.position,
+        scale: size,
+      });
+      return;
+    }
+
+    if (this.state.selectedItem) {
+      const cell = this._resolvePlacementCell(point, this.state.selectedItem);
+      if (!cell) {
+        this._setPreviewTarget(null);
+        return;
+      }
+
+      this._setPreviewTarget({
+        kind: "cell",
+        position: cell.position,
+        scale: 1,
+        yOffset: cell.type === "plants" ? 1.0 : 0.75,
+      });
+      return;
+    }
+
+    this._setPreviewTarget(null);
+  }
+
   tick(delta) {
+    this._previewPulse += delta * 4;
+    if (this._previewCellGroup?.visible) {
+      const bob = Math.sin(this._previewPulse) * 0.05;
+      const pulse = 1 + Math.sin(this._previewPulse * 1.3) * 0.06;
+      const baseY = this._previewCellGroup.userData.baseY ?? this._previewCellGroup.position.y;
+      const baseScale = this._previewCellGroup.userData.baseScale ?? 1;
+      this._previewCellGroup.position.y = baseY + bob;
+      this._previewCellGroup.scale.set(
+        baseScale * pulse,
+        baseScale * pulse,
+        baseScale * pulse
+      );
+    }
+
     this.entities.tick(delta, this.state, this.ui);
     this.dayNight.tick(delta);
     for (const obj of this.updatables) obj.tick?.(delta);
@@ -397,16 +673,16 @@ export class GameManager {
 
     const occupiedTargets = Object.values(this.tutorialTargets).filter(Boolean);
     let field = this.field.fields.find(
-      (f) => !f.structure && !occupiedTargets.includes(f)
+      (entry) => !entry.structure && !occupiedTargets.includes(entry)
     );
     if (!field) {
-      field = this.field.fields.find((f) => !f.structure);
+      field = this.field.fields.find((entry) => !entry.structure);
     }
     if (!field && structureType === "garden") {
-      field = this.field.fields.find((f) => f.structure?.type === "garden");
+      field = this.field.fields.find((entry) => entry.structure?.type === "garden");
     }
     if (!field && structureType === "pen") {
-      field = this.field.fields.find((f) => f.structure?.type === "pen");
+      field = this.field.fields.find((entry) => entry.structure?.type === "pen");
     }
 
     this.tutorialTargets[slot] = field ?? null;
@@ -421,8 +697,6 @@ export class GameManager {
     const rotation = field.rotationY ?? 0;
     const cos = Math.cos(rotation);
     const sin = Math.sin(rotation);
-    // Build click detection works on the world plane y=0, so spotlight rect
-    // must be projected from the same plane to match the real click zone.
     const y = 0;
 
     const localCorners = [
