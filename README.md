@@ -15,6 +15,10 @@ Desktop gameplay:
 
 ![Desktop gameplay](docs/screenshots/desktop-gameplay.png)
 
+Desktop tutorial flow:
+
+![Desktop tutorial](docs/screenshots/desctop-tutorial.png)
+
 Mobile gameplay:
 
 ![Mobile gameplay](docs/screenshots/mobile-gameplay.png)
